@@ -1,0 +1,28 @@
+{
+  "name": "luca",
+  "version": "1.0.0",
+  "description": "A small management system for an RV park.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [
+    "pms"
+  ],
+  "author": "Daniel Sprohar",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "debug": "^4.2.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-handlebars": "^5.1.0",
+    "helmet": "^4.1.1",
+    "pg": "^8.4.1",
+    "pg-hstore": "^2.3.3",
+    "sequelize": "^6.3.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
