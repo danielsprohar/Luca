@@ -45,7 +45,4 @@ Invoice.init(
   }
 )
 
-// TODO: Create relationships
-
-Invoice.sync()
 module.exports = Invoice

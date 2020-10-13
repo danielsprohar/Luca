@@ -1,33 +1,24 @@
 const express = require('express')
-const models = require('./models')
-
-// Database
-const db = require('./config/database')
-
-// Test DB
-db.authenticate()
-  .then(() => console.log('Database connected...'))
-  .catch((err) => console.log('Error: ' + err))
+const helmet = require('helmet')
+const logger = require('morgan')
+// const cors = require('cors')
 
 const app = express()
 
-// parse application/json
+// app.use(cors(corsOptions))
 app.use(express.json())
+app.use(helmet())
+app.use(logger('dev'))
 
-// Index route
-// app.get('/', (req, res) => res.render('index', { layout: 'landing' }))
-app.get('/', async (req, res) => {
-  const ParkingSpace = require('./models/parking-space')
-  const space = await ParkingSpace.findOne({
-    where: {
-      id: 1
-    }
-  })
-
-  res.json(space)
-})
-
+// ===========================================================================
 // Routes
+// ===========================================================================
+
+const parkingSpacesRouter = require('./routes/parking-space-routes')
+
+app.use('/api/parking-spaces', parkingSpacesRouter)
+
+// ===========================================================================
 
 const PORT = process.env.PORT || 5000
 

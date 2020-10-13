@@ -52,5 +52,4 @@ CustomerVehicle.init(
   }
 )
 
-CustomerVehicle.sync()
 module.exports = CustomerVehicle

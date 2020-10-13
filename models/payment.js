@@ -33,5 +33,4 @@ Payment.init(
   }
 )
 
-Payment.sync()
 module.exports = Payment

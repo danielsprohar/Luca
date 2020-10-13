@@ -1,6 +1,5 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
-const CustomerVehicle = require('./customer-vehicle')
 
 class Customer extends Model {}
 
@@ -70,6 +69,5 @@ Customer.init(
   }
 )
 
-Customer.hasMany(CustomerVehicle)
 
 module.exports = Customer
