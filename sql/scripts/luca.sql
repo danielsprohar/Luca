@@ -131,9 +131,9 @@ CREATE TABLE IF NOT EXISTS invoices
 	id serial PRIMARY KEY,
 	payment_status public.payment_status NOT NULL,
 	rental_agreement_id integer NOT NULL,
-	payment_due_date timestamptz NOT NULL,
-	billing_period_start timestamptz NOT NULL,
-	billing_period_end timestamptz NOT NULL,
+	payment_due_date date NOT NULL,
+	billing_period_start date NOT NULL,
+	billing_period_end date NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT current_timestamp,
 	updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 	FOREIGN KEY (rental_agreement_id) REFERENCES rental_agreements (id) ON DELETE cascade
