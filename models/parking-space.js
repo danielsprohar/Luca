@@ -35,10 +35,15 @@ ParkingSpace.init(
       values: ['rv', 'mobile home', 'storage']
     }
   },
-  { sequelize, modelName: 'ParkingSpace' }
+  { 
+    sequelize, 
+    modelName: 'ParkingSpace', 
+    tableName: 'parking_spaces',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  }
 )
 
 // TODO: create a m:n relationship with Customers
-ParkingSpace.sync()
 
 module.exports = ParkingSpace

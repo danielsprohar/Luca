@@ -60,7 +60,10 @@ RentalAgreement.init(
   },
   {
     sequelize,
-    modelName: 'RentalAgreement'
+    modelName: 'RentalAgreement',
+    tableName: 'rental_agreements',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 

@@ -44,7 +44,10 @@ Invoice.init(
   },
   {
     sequelize,
-    modelName: 'Invoice'
+    modelName: 'Invoice',
+    tableName: 'invoices',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 

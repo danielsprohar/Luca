@@ -67,6 +67,9 @@ Customer.init(
   {
     sequelize,
     modelName: 'Customer',
+    tableName: 'customers',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
     indexes: [
       {
         name: 'customer_full_name',

@@ -1,7 +1,6 @@
 const express = require('express')
-const exphbs = require('express-handlebars')
-const bodyParser = require('body-parser')
-const path = require('path')
+
+const ParkingSpace = require('./models/parking-space')
 
 // Database
 const db = require('./config/database')
@@ -14,12 +13,18 @@ db.authenticate()
 const app = express()
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(express.json())
 
 // Index route
 // app.get('/', (req, res) => res.render('index', { layout: 'landing' }))
-app.get('/', (req, res) => {
-  res.json('hello world')
+app.get('/', async (req, res) => {
+  const space = await ParkingSpace.findOne({
+    where: {
+      id: 1
+    }
+  })
+
+  res.json(space)
 })
 
 // Routes

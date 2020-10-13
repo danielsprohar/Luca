@@ -46,7 +46,10 @@ CustomerVehicle.init(
   },
   {
     sequelize,
-    modelName: 'CustomerVehicle'
+    modelName: 'CustomerVehicle',
+    tableName: 'customer_vehicles',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 
