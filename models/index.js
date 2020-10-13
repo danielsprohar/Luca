@@ -1,5 +1,4 @@
 const models = {
-  Account: require('./account'),
   CustomerVehicle: require('./customer-vehicle'),
   Customer: require('./customer'),
   Invoice: require('./invoice'),

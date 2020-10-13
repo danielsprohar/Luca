@@ -13,11 +13,9 @@ app.use(logger('dev'))
 // ===========================================================================
 // Routes
 // ===========================================================================
-const authRouter = require('./routes/auth-routes')
 const parkingSpacesRouter = require('./routes/parking-space-routes')
 
 app.use('/api/parking-spaces', parkingSpacesRouter)
-app.use('/api/auth', authRouter)
 
 // ===========================================================================
 
