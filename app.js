@@ -13,18 +13,8 @@ db.authenticate()
 
 const app = express()
 
-// Handlebars
-// app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
-// app.set('view engine', 'handlebars')
-
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
-
 // parse application/json
 app.use(bodyParser.json())
-
-// Set static folder
-app.use(express.static(path.join(__dirname, 'public')))
 
 // Index route
 // app.get('/', (req, res) => res.render('index', { layout: 'landing' }))

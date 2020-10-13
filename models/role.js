@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
+const User = require('./user')
 
 class Role extends Model {}
 
@@ -21,5 +22,6 @@ Role.init(
   }
 )
 
-Role.sync()
+Role.belongsToMany(User, { through: 'user_roles' })
+
 module.exports = Role
