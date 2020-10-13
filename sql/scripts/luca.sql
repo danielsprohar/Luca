@@ -32,10 +32,30 @@ DROP TABLE IF EXISTS parking_space_types;
 -- ============================================================
 -- Custom types
 -- ============================================================
-CREATE TYPE public.space_type AS ENUM ('rv', 'mobile home', 'storage');
-CREATE TYPE public.payment_status AS ENUM ('not paid', 'paid', 'bad credit');
-CREATE TYPE public.rental_agreement_type AS ENUM ('daily', 'monthly', 'weekly');
-CREATE TYPE public.payment_method AS ENUM ('cash', 'credit', 'debit', 'money order');
+CREATE TYPE public.space_type AS ENUM (
+	'rv', 
+	'mobile home', 
+	'storage'
+);
+
+CREATE TYPE public.payment_status AS ENUM (
+	'not paid', 
+	'paid', 
+	'bad credit'
+);
+
+CREATE TYPE public.rental_agreement_type AS ENUM (
+	'daily', 
+	'monthly', 
+	'weekly'
+);
+
+CREATE TYPE public.payment_method AS ENUM (
+	'cash', 
+	'credit', 
+	'debit', 
+	'money order'
+);
 
 CREATE DOMAIN public.year AS integer
 	CONSTRAINT year_check CHECK (VALUE >= 1901);
