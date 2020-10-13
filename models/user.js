@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
+const Joi = require('joi')
 
 class User extends Model {}
 
@@ -15,8 +16,7 @@ User.init(
       allowNull: false
     },
     normalizedUsername: {
-      type: DataTypes.STRING(255),
-      allowNull: false
+      type: DataTypes.STRING(255)
     },
     email: {
       type: DataTypes.STRING(255),
@@ -27,15 +27,14 @@ User.init(
       }
     },
     normalizedEmail: {
-      type: DataTypes.STRING(255),
-      allowNull: false
+      type: DataTypes.STRING(255)
     },
     hashedPassword: {
       type: DataTypes.STRING(64),
       allowNull: false,
-      validate: {
-        is: /^[0-9a-f]{64}$/i
-      }
+      // validate: {
+      //   is: /^[0-9a-f]{64}$/i
+      // }
     }
   },
   {
@@ -46,4 +45,20 @@ User.init(
   }
 )
 
-module.exports = User
+// ===========================================================================
+// Model validation
+// ===========================================================================
+function validate(user) {
+  const schema = Joi.object({
+    username: Joi.string().min(1).max(255).required(),
+    email: Joi.string().min(1).max(255).required(),
+    password: Joi.string().min(1).max(255).required()
+  })
+
+  return schema.validate(user)
+}
+
+// ===========================================================================
+
+module.exports.User = User
+module.exports.validate = validate

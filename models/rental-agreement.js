@@ -62,4 +62,4 @@ RentalAgreement.init(
   }
 )
 
-module.export = RentalAgreement
+module.exports = RentalAgreement

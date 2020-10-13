@@ -7,7 +7,7 @@ const models = {
   Payment: require('./payment'),
   RentalAgreement: require('./rental-agreement'),
   Role: require('./role'),
-  User: require('./user')
+  User: require('./user').User
 }
 
 // TODO: Create relationships

@@ -239,9 +239,9 @@ CREATE TABLE IF NOT EXISTS parking_space_occupants
 	FOREIGN KEY (parking_space_id) REFERENCES parking_spaces (id) ON DELETE cascade
 );
 
--- ============================================================
+-- ===========================================================================
 -- Seed data
--- ============================================================
+-- ===========================================================================
 
 INSERT INTO
 	parking_spaces (name, amperage_capacity, space_type) 
@@ -257,3 +257,12 @@ VALUES
 	('C', 0, 'mobile home'), ('D', 0, 'mobile home'),
 	('E', 0, 'mobile home'), ('F', 0, 'mobile home'), 
 	('G', 0, 'mobile home');
+
+-- ===========================================================================
+
+INSERT INTO 
+	roles (id, name)
+VALUES
+	(1, 'user'), (2, 'admin');
+
+-- ===========================================================================
