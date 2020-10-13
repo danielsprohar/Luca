@@ -13,17 +13,14 @@ Customer.init(
     },
     firstName: {
       type: DataTypes.STRING(32),
-      allowNull: false,
-      field: 'first_name'
+      allowNull: false
     },
     middleName: {
-      type: DataTypes.STRING(32),
-      field: 'middle_name'
+      type: DataTypes.STRING(32)
     },
     lastName: {
       type: DataTypes.STRING(32),
-      allowNull: false,
-      field: 'last_name'
+      allowNull: false
     },
     phone: {
       type: DataTypes.STRING(32),
@@ -38,38 +35,32 @@ Customer.init(
     },
     normalizedEmail: {
       type: DataTypes.STRING(254),
-      allowNull: false,
-      field: 'normalized_email'
+      allowNull: false
     },
     gender: {
       type: DataTypes.STRING(8),
       allowNull: false
     },
     dlNumber: {
-      type: DataTypes.STRING(32),
-      field: 'dl_number'
+      type: DataTypes.STRING(32)
     },
     dlState: {
-      type: DataTypes.STRING(32),
-      field: 'dl_state'
+      type: DataTypes.STRING(32)
     },
     dlPhotoUrl: {
-      type: DataTypes.STRING(2048),
-      field: 'dl_photo_url'
+      type: DataTypes.STRING(2048)
     },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
-      allowNull: false,
-      field: 'is_active'
+      allowNull: false
     }
   },
   {
     sequelize,
     modelName: 'Customer',
     tableName: 'customers',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
+    underscored: true,
     indexes: [
       {
         name: 'customer_full_name',

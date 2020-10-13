@@ -1,4 +1,4 @@
-const { DataTypes, Model } = require('sequelize')
+const { DataTypes, Model, Deferrable } = require('sequelize')
 const sequelize = require('../config/database')
 
 class CustomerVehicle extends Model {}
@@ -48,8 +48,7 @@ CustomerVehicle.init(
     sequelize,
     modelName: 'CustomerVehicle',
     tableName: 'customer_vehicles',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

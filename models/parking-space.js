@@ -21,29 +21,23 @@ ParkingSpace.init(
     isOccupied: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      allowNull: false,
-      field: 'is_occupied'
+      allowNull: false
     },
     amperageCapacity: {
-      type: DataTypes.INTEGER,
-      field: 'amperage_capacity'
+      type: DataTypes.INTEGER
     },
     spaceType: {
       type: DataTypes.ENUM,
       allowNull: false,
-      field: 'space_type',
       values: ['rv', 'mobile home', 'storage']
     }
   },
-  { 
-    sequelize, 
-    modelName: 'ParkingSpace', 
+  {
+    sequelize,
+    modelName: 'ParkingSpace',
     tableName: 'parking_spaces',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
-
-// TODO: create a m:n relationship with Customers
 
 module.exports = ParkingSpace

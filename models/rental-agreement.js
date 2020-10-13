@@ -13,7 +13,6 @@ RentalAgreement.init(
     recurringDueDate: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'recurring_due_date',
       validate: {
         min: 1,
         max: 31
@@ -22,7 +21,6 @@ RentalAgreement.init(
     recurringRate: {
       type: DataTypes.DECIMAL,
       allowNull: false,
-      field: 'recurring_rate',
       validate: {
         min: 0
       }
@@ -30,12 +28,10 @@ RentalAgreement.init(
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      field: 'is_active',
       defaultValue: true
     },
     agreementType: {
       type: DataTypes.ENUM,
-      field: 'agreement_type',
       allowNull: false,
       values: ['daily', 'weekly', 'monthly']
     },
@@ -62,10 +58,8 @@ RentalAgreement.init(
     sequelize,
     modelName: 'RentalAgreement',
     tableName: 'rental_agreements',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 
-RentalAgreement.sync()
 module.export = RentalAgreement

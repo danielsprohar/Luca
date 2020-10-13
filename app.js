@@ -1,6 +1,5 @@
 const express = require('express')
-
-const ParkingSpace = require('./models/parking-space')
+const models = require('./models')
 
 // Database
 const db = require('./config/database')
@@ -18,6 +17,7 @@ app.use(express.json())
 // Index route
 // app.get('/', (req, res) => res.render('index', { layout: 'landing' }))
 app.get('/', async (req, res) => {
+  const ParkingSpace = require('./models/parking-space')
   const space = await ParkingSpace.findOne({
     where: {
       id: 1

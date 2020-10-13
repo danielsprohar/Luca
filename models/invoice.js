@@ -13,13 +13,11 @@ Invoice.init(
     paymentStatus: {
       type: DataTypes.ENUM,
       allowNull: false,
-      field: 'payment_status',
       values: ['not paid', 'paid', 'bad credit']
     },
     rentalAgreementId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'rental_agreement_id',
       references: {
         key: 'id',
         model: 'RentalAgreement',
@@ -28,26 +26,22 @@ Invoice.init(
     },
     paymentDueDate: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
-      field: 'payment_due_date'
+      allowNull: false
     },
     billingPeriodStart: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
-      field: 'billing_period_start'
+      allowNull: false
     },
     billingPeriodEnd: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
-      field: 'billing_period_end'
+      allowNull: false
     }
   },
   {
     sequelize,
     modelName: 'Invoice',
     tableName: 'invoices',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 
