@@ -5,16 +5,24 @@ class Customer extends Model {}
 
 Customer.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrementIdentity: true
+    },
     firstName: {
       type: DataTypes.STRING(32),
-      allowNull: false
+      allowNull: false,
+      field: 'first_name'
     },
     middleName: {
-      type: DataTypes.STRING(32)
+      type: DataTypes.STRING(32),
+      field: 'middle_name'
     },
     lastName: {
       type: DataTypes.STRING(32),
-      allowNull: false
+      allowNull: false,
+      field: 'last_name'
     },
     phone: {
       type: DataTypes.STRING(32),
@@ -24,27 +32,32 @@ Customer.init(
       type: DataTypes.STRING(254),
       allowNull: false
     },
+    normalizedEmail: {
+      type: DataTypes.STRING(254),
+      allowNull: false,
+      field: 'normalized_email'
+    },
     gender: {
       type: DataTypes.STRING(8),
       allowNull: false
     },
-    normalizedEmail: {
-      type: DataTypes.STRING(254),
-      allowNull: false
+    dlNumber: {
+      type: DataTypes.STRING(32),
+      field: 'dl_number'
+    },
+    dlState: {
+      type: DataTypes.STRING(32),
+      field: 'dl_state'
+    },
+    dlPhotoUrl: {
+      type: DataTypes.STRING(2048),
+      field: 'dl_photo_url'
     },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
-      allowNull: false
-    },
-    dlNumber: {
-      type: DataTypes.STRING(32)
-    },
-    dlState: {
-      type: DataTypes.STRING(32)
-    },
-    dlPhotoUrl: {
-      type: DataTypes.STRING(2048)
+      allowNull: false,
+      field: 'is_active'
     }
   },
   {
@@ -53,6 +66,7 @@ Customer.init(
   }
 )
 
+// TODO: create relationships
 Customer.sync()
 
 module.exports = Customer

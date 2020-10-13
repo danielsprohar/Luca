@@ -1,6 +1,5 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
-const ParkingSpaceType = require('./parking-space-type')
 
 class ParkingSpace extends Model {}
 
@@ -9,42 +8,37 @@ ParkingSpace.init(
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      allowNull: false,
-      autoIncrement: true
+      autoIncrementIdentity: true
     },
-    label: {
-      type: DataTypes.STRING(8),
+    name: {
+      type: DataTypes.STRING(32),
       allowNull: false,
       unique: true
     },
-    rate: {
-      type: DataTypes.DECIMAL,
-      allowNull: false
-    },
-    isAvailable: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: true,
-      allowNull: false
-    },
     description: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING(128)
+    },
+    isOccupied: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+      field: 'is_occupied'
     },
     amperageCapacity: {
-      type: DataTypes.INTEGER
-    },
-    parkingSpaceTypeId: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      field: 'amperage_capacity'
+    },
+    spaceType: {
+      type: DataTypes.ENUM,
+      allowNull: false,
+      field: 'space_type',
+      values: ['rv', 'mobile home', 'storage']
     }
   },
   { sequelize, modelName: 'ParkingSpace' }
 )
 
-ParkingSpace.ParkingSpaceType = ParkingSpace.belongsTo(ParkingSpaceType, {
-  foreignKey: 'parking_space_type_id',
-  as: 'ParkingSpaceType'
-})
-
+// TODO: create a m:n relationship with Customers
 ParkingSpace.sync()
 
 module.exports = ParkingSpace
