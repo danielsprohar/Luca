@@ -66,7 +66,13 @@ Customer.init(
   },
   {
     sequelize,
-    modelName: 'Customer'
+    modelName: 'Customer',
+    indexes: [
+      {
+        name: 'customer_full_name',
+        fields: ['first_name', 'last_name']
+      }
+    ]
   }
 )
 

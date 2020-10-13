@@ -124,6 +124,11 @@ CREATE TABLE IF NOT EXISTS customers
 	updated_at timestamptz NOT NULL DEFAULT current_timestamp
 );
 
+CREATE INDEX customer_full_name
+    ON customers USING btree
+    (first_name ASC NULLS LAST, last_name ASC NULLS LAST)
+;
+
 -- Weak entity type
 CREATE TABLE IF NOT EXISTS customer_vehicles
 (
