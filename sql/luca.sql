@@ -30,45 +30,15 @@ DROP TABLE IF EXISTS invoice_statuses;
 DROP TABLE IF EXISTS parking_space_types;
 
 -- ============================================================
--- Reference Tables
+-- Custom types
 -- ============================================================
-CREATE TABLE IF NOT EXISTS parking_space_types
-(
-	id serial PRIMARY KEY,
-	name varchar(32) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp
-);
+CREATE TYPE public.space_type AS ENUM ('rv', 'mobile home', 'storage');
+CREATE TYPE public.payment_status AS ENUM ('not paid', 'paid', 'bad credit');
+CREATE TYPE public.rental_agreement_type AS ENUM ('daily', 'monthly', 'weekly');
+CREATE TYPE public.payment_method AS ENUM ('cash', 'credit', 'debit', 'money order');
 
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS rental_agreement_types
-(
-	id serial PRIMARY KEY,
-	name varchar(32) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp
-);
-
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS invoice_statuses
-(
-	id serial PRIMARY KEY,
-	name varchar(32) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp
-);
-
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS payment_methods
-(
-	id serial PRIMARY KEY,
-	name varchar(32) NOT NULL,
-	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp
-);
+CREATE DOMAIN public.year AS integer
+	CONSTRAINT year_check CHECK (VALUE >= 1901);
 
 -- ============================================================
 -- Domain entities
@@ -81,10 +51,9 @@ CREATE TABLE IF NOT EXISTS parking_spaces
 	description varchar(32),
 	is_occupied boolean NOT NULL DEFAULT FALSE,
 	amperage_capacity integer,
-	parking_space_type_id integer NOT NULL,
+	space_type public.space_type NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-	FOREIGN KEY (parking_space_type_id) REFERENCES parking_space_types (id) ON DELETE cascade
+	updated_at timestamptz NOT NULL DEFAULT current_timestamp
 );
 
 CREATE TABLE IF NOT EXISTS customers
@@ -108,7 +77,7 @@ CREATE TABLE IF NOT EXISTS customers
 CREATE TABLE IF NOT EXISTS customer_vehicles
 (
 	id serial PRIMARY KEY,
-	year INTEGER NOT NULL,
+	year public.year NOT NULL,
 	make varchar(32) NOT NULL,
 	model varchar(32) NOT NULL,
 	license_plate_no varchar(32) NOT NULL,
@@ -128,27 +97,25 @@ CREATE TABLE IF NOT EXISTS rental_agreements
 	is_active boolean DEFAULT TRUE,
 	customer_id integer NOT NULL,
 	parking_space_id integer NOT NULL,
-	rental_agreement_type_id integer NOT NULL,
+	agreement_type public.rental_agreement_type NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT current_timestamp,
 	updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 	FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE cascade,
-	FOREIGN KEY (parking_space_id) REFERENCES parking_spaces (id) ON DELETE cascade,
-	FOREIGN KEY (rental_agreement_type_id) REFERENCES rental_agreement_types (id) ON DELETE cascade
+	FOREIGN KEY (parking_space_id) REFERENCES parking_spaces (id) ON DELETE cascade
 );
 
+-- The invoice amount is determined by the 
+-- 	"recurring_rate" attribute of the `rental_agreement` entity.
 CREATE TABLE IF NOT EXISTS invoices
 (
 	id serial PRIMARY KEY,
-	customer_id integer NOT NULL,
-	invoice_status_id integer NOT NULL,
+	payment_status public.payment_status NOT NULL,
 	rental_agreement_id integer NOT NULL,
 	payment_due_date timestamptz NOT NULL,
 	billing_period_start timestamptz NOT NULL,
 	billing_period_end timestamptz NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT current_timestamp,
 	updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-	FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE cascade,
-	FOREIGN KEY (invoice_status_id) REFERENCES invoice_statuses (id) ON DELETE cascade,
 	FOREIGN KEY (rental_agreement_id) REFERENCES rental_agreements (id) ON DELETE cascade
 );
 
@@ -156,10 +123,11 @@ CREATE TABLE IF NOT EXISTS payments
 (
 	id serial PRIMARY KEY,
 	amount money NOT NULL,
-	payment_method_id integer NOT NULL,
+	payment_method public.payment_method NOT NULL,
+	tp_provider varchar(128),
+	tp_transaction_number varchar(128),
 	created_at timestamptz NOT NULL DEFAULT current_timestamp,
-	updated_at timestamptz NOT NULL DEFAULT current_timestamp,
-	FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id) ON DELETE cascade
+	updated_at timestamptz NOT NULL DEFAULT current_timestamp
 );
 
 -- ============================================================
@@ -190,34 +158,21 @@ CREATE TABLE IF NOT EXISTS parking_space_occupants
 	FOREIGN KEY (parking_space_id) REFERENCES parking_spaces (id) ON DELETE cascade
 );
 
-INSERT INTO parking_space_types (id, name) values (1, 'rv');
-INSERT INTO parking_space_types (id, name) values (2, 'mobile home');
-INSERT INTO parking_space_types (id, name) values (3, 'storage');
-
-INSERT INTO payment_methods (name) values('debit');
-INSERT INTO payment_methods (name) values('cash');
-INSERT INTO payment_methods (name) values('check');
-INSERT INTO payment_methods (name) values('credit');
-INSERT INTO payment_methods (name) values('money order');
-
-INSERT INTO invoice_statuses (name) values('awaiting payment');
-INSERT INTO invoice_statuses (name) values('partially paid');
-INSERT INTO invoice_statuses (name) values('paid');
-INSERT INTO invoice_statuses (name) values('bad credit');
-
-INSERT INTO rental_agreement_types (name) values('monthly');
-INSERT INTO rental_agreement_types (name) values('weekly');
-INSERT INTO rental_agreement_types (name) values('daily');
-
+-- ============================================================
+-- Seed data
+-- ============================================================
 
 INSERT INTO
-	parking_spaces (name, amperage_capacity, parking_space_type_id) 
+	parking_spaces (name, amperage_capacity, space_type) 
 VALUES
-	('1', 50, 1), ('2', 30, 1), ('3', 50, 1), ('4', 30, 1), ('5', 50, 1),
-    ('6', 30, 1), ('7', 50, 1), ('8', 50, 1), ('9', 50, 1), ('10', 30, 1),
-    ('11', 30, 1), ('12', 30, 1), ('13', 30, 1), ('14', 50, 1), ('15', 50, 1),
-    ('16', 50, 1), ('17', 30, 1), ('18', 30, 1), ('19', 30, 1), ('20', 50, 1),
-    ('21', 30, 1), ('22', 50, 1), ('23', 50, 1), ('24', 30, 1), ('25', 30, 1),
-    ('26', 30, 1), ('27', 30, 1), ('28', 30, 1), ('29',30, 1) , ('30',30, 1),
-    ('31',50, 1), ('32',50, 1), 
-    ('A', 0, 2), ('B', 0, 2), ('C', 0, 2),('D', 0, 2),('E', 0, 2),('F', 0, 2),('G', 0, 2);
+	('1', 50, 'rv'), ('2', 30, 'rv'), ('3', 50, 'rv'), ('4', 30, 'rv'), ('5', 50, 'rv'),
+    ('6', 30, 'rv'), ('7', 50, 'rv'), ('8', 50, 'rv'), ('9', 50, 'rv'), ('10', 30, 'rv'),
+    ('11', 30, 'rv'), ('12', 30, 'rv'), ('13', 30, 'rv'), ('14', 50, 'rv'), ('15', 50, 'rv'),
+    ('16', 50, 'rv'), ('17', 30, 'rv'), ('18', 30, 'rv'), ('19', 30, 'rv'), ('20', 50, 'rv'),
+    ('21', 30, 'rv'), ('22', 50, 'rv'), ('23', 50, 'rv'), ('24', 30, 'rv'), ('25', 30, 'rv'),
+    ('26', 30, 'rv'), ('27', 30, 'rv'), ('28', 30, 'rv'), ('29',30, 'rv') , ('30',30, 'rv'),
+    ('31',50, 'rv'), ('32',50, 'rv'), 
+    ('A', 0, 'mobile home'), ('B', 0, 'mobile home'), 
+	('C', 0, 'mobile home'), ('D', 0, 'mobile home'),
+	('E', 0, 'mobile home'), ('F', 0, 'mobile home'), 
+	('G', 0, 'mobile home');
