@@ -21,12 +21,24 @@ User.init(
     },
     email: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
     },
     normalizedEmail: {
       type: DataTypes.STRING(255),
       allowNull: false,
       field: 'normalized_email'
+    },
+    hashedPassword: {
+      type: DataTypes.STRING(64),
+      allowNull: false,
+      field: 'hashed_password',
+      validate: {
+        is: /^[0-9a-f]{64}$/i
+      }
     }
   },
   {

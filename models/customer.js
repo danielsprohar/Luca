@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
+const CustomerVehicle = require('./customer-vehicle')
 
 class Customer extends Model {}
 
@@ -30,7 +31,10 @@ Customer.init(
     },
     email: {
       type: DataTypes.STRING(254),
-      allowNull: false
+      allowNull: false,
+      validate: {
+        isEmail: true
+      }
     },
     normalizedEmail: {
       type: DataTypes.STRING(254),
@@ -66,7 +70,6 @@ Customer.init(
   }
 )
 
-// TODO: create relationships
-Customer.sync()
+Customer.hasMany(CustomerVehicle)
 
 module.exports = Customer
