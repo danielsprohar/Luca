@@ -16,14 +16,16 @@ class RentalAgreement extends Model {
     return schema.validate(rentalAgreement)
   }
 
+  /**
+   * Puts a constraint on the fields that the client can alter.
+   * @param {*} rentalAgreement 
+   */
   static validateUpdate(rentalAgreement) {
     const schema = Joi.object({
       recurringDueDate: Joi.number().min(1).max(32),
       recurringRate: Joi.number().min(1),
       isActive: Joi.boolean(),
-      agreementType: Joi.string().min(1),
-      customerId: Joi.number(),
-      parkingSpaceId: Joi.number()
+      agreementType: Joi.string().min(1)
     })
 
     return schema.validate(rentalAgreement)

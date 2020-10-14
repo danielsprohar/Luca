@@ -87,7 +87,7 @@ router.post('/', async (req, res) => {
 
     await transaction.commit()
 
-    return res.json(agreement)
+    return res.send(agreement)
   } catch (error) {
     debug(error)
 
@@ -103,7 +103,61 @@ router.post('/', async (req, res) => {
 // ===========================================================================
 // Update
 // ===========================================================================
-router.put('/', async (req, res) => {})
+
+router.put('/:id', async (req, res) => {
+  const { error } = RentalAgreement.validateUpdate(req.body)
+  if (error) {
+    debug(error)
+    return res.status(400).send(
+      new HttpResponse({
+        code: 400,
+        success: false,
+        validationErrors: [error.details[0].message]
+      })
+    )
+  }
+
+  if (!(await rentalAgreementExists(req.params.id))) {
+    return res.status(404).send(
+      new HttpResponse({
+        code: 404,
+        success: false,
+        message: 'Rental Agreement does not exist.'
+      })
+    )
+  }
+
+  await RentalAgreement.update(req.body, {
+    where: {
+      id: req.params.id
+    }
+  })
+
+  res.status(204)
+})
+
+// ===========================================================================
+// Deactivate
+// ===========================================================================
+
+router.put('/:id/deactivate', async (req, res) => {
+  if (!(await rentalAgreementExists(req.params.id))) {
+    return res.status(404).send('Rental Agreement does not exist.')
+  }
+
+  await RentalAgreement.update(
+    {
+      isActive: false
+    },
+    {
+      where: {
+        id: req.params.id
+      }
+    }
+  )
+
+  res.status(204).send()
+})
 
 // ===========================================================================
 // Facilitators
@@ -119,6 +173,14 @@ async function parkingSpaceExists(id) {
 
 async function customerExists(id) {
   return await Customer.findByPk(id, {
+    attributes: ['id']
+  })
+}
+
+// ===========================================================================
+
+async function rentalAgreementExists(id) {
+  return await RentalAgreement.findByPk(id, {
     attributes: ['id']
   })
 }
