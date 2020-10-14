@@ -1,4 +1,16 @@
 {
     "prettier.trailingComma": "none",
-    "prettier.singleQuote": true
+    "prettier.singleQuote": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "postgres@localhost",
+            "database": "luca",
+            "username": "postgres"
+        }
+    ]
 }

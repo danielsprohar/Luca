@@ -23,13 +23,12 @@ Payment.belongsToMany(Invoice, { through: 'invoice_payments' })
 // ===========================================================================
 // One-to-Many
 // ===========================================================================
-RentalAgreement.belongsTo(ParkingSpace)
-RentalAgreement.belongsTo(Customer)
+RentalAgreement.belongsTo(ParkingSpace, { foreignKey: 'parking_space_id' })
+RentalAgreement.belongsTo(Customer, { foreignKey: 'customer_id' })
 
 Invoice.belongsTo(RentalAgreement)
 
 CustomerVehicle.belongsTo(Customer)
-
 
 // ===========================================================================
 
