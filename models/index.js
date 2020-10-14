@@ -11,24 +11,91 @@ const { User } = require('./user')
 // Many-to-Many
 // ===========================================================================
 
-User.belongsToMany(Role, { through: 'user_roles' })
-User.belongsToMany(Role, { through: 'user_roles' })
+User.belongsToMany(Role, {
+  through: 'user_roles',
+  foreignKey: {
+    name: 'roleId',
+    field: 'role_id'
+  }
+})
 
-Customer.belongsToMany(ParkingSpace, { through: 'parking_space_occupants' })
-ParkingSpace.belongsToMany(Customer, { through: 'parking_space_occupants' })
+Role.belongsToMany(User, {
+  through: 'user_roles',
+  foreignKey: {
+    name: 'userId',
+    field: 'user_id'
+  }
+})
 
-Invoice.belongsToMany(Payment, { through: 'invoice_payments' })
-Payment.belongsToMany(Invoice, { through: 'invoice_payments' })
+// ===========================================================================
+
+Customer.belongsToMany(ParkingSpace, {
+  through: 'parking_space_occupants',
+  foreignKey: {
+    name: 'parkingSpaceId',
+    field: 'parking_space_id'
+  }
+})
+
+ParkingSpace.belongsToMany(Customer, {
+  through: 'parking_space_occupants',
+  foreignKey: {
+    name: 'customerId',
+    field: 'customer_id'
+  }
+})
+
+// ===========================================================================
+
+Invoice.belongsToMany(Payment, {
+  through: 'invoice_payments',
+  foreignKey: {
+    name: 'paymentId',
+    field: 'payment_id'
+  }
+})
+
+Payment.belongsToMany(Invoice, {
+  through: 'invoice_payments',
+  foreignKey: {
+    name: 'invoiceId',
+    field: 'invoice_id'
+  }
+})
 
 // ===========================================================================
 // One-to-Many
 // ===========================================================================
-RentalAgreement.belongsTo(ParkingSpace, { foreignKey: 'parking_space_id' })
-RentalAgreement.belongsTo(Customer, { foreignKey: 'customer_id' })
 
-Invoice.belongsTo(RentalAgreement)
+RentalAgreement.belongsTo(ParkingSpace, {
+  foreignKey: {
+    name: 'parkingSpaceId',
+    field: 'parking_space_id'
+  }
+})
 
-CustomerVehicle.belongsTo(Customer)
+RentalAgreement.belongsTo(Customer, {
+  foreignKey: {
+    name: 'customerId',
+    field: 'customer_id'
+  }
+})
+
+// ===========================================================================
+
+Invoice.belongsTo(RentalAgreement, {
+  foreignKey: {
+    name: 'rentalAgreementId',
+    field: 'rental_agreement_id'
+  }
+})
+
+CustomerVehicle.belongsTo(Customer, {
+  foreignKey: {
+    name: 'customerId',
+    field: 'customer_id'
+  }
+})
 
 // ===========================================================================
 

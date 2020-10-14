@@ -38,11 +38,6 @@ class ParkingSpace extends Model {
 
 ParkingSpace.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrementIdentity: true
-    },
     name: {
       type: DataTypes.STRING(32),
       allowNull: false,

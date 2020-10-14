@@ -1,13 +1,14 @@
-const models = require('../models')
+const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
+const debug = require('debug')('luca:rental-agreements')
+const { Customer, ParkingSpace, RentalAgreement } = require('../models')
 
 // ===========================================================================
 // Pagination
 // ===========================================================================
 
 router.get('/', async (req, res) => {
-  const RentalAgreement = models.RentalAgreement
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
@@ -32,13 +33,11 @@ router.get('/', async (req, res) => {
 // ===========================================================================
 
 router.get('/:id', async (req, res) => {
-  const RentalAgreement = models.RentalAgreement
-
   const space = await RentalAgreement.findOne({
     where: {
       id: req.params.id
     },
-    include: [models.Customer, models.ParkingSpace]
+    include: [Customer, ParkingSpace]
   })
 
   if (!space) {
@@ -47,6 +46,82 @@ router.get('/:id', async (req, res) => {
 
   res.json(space)
 })
+
+// ===========================================================================
+// Create
+// ===========================================================================
+
+router.post('/', async (req, res) => {
+  const { error } = RentalAgreement.validateInsert(req.body)
+  if (error) {
+    debug(error)
+    return res.status(400).send(error.details[0].message)
+  }
+
+  // Do some more validation.
+  const parkingSpaceId = req.body.parkingSpaceId
+  const customerId = req.body.customerId
+
+  if (!(await parkingSpaceExists(parkingSpaceId))) {
+    return res.status(404).send('Parking Space does not exist.')
+  }
+
+  if (!(await customerExists(customerId))) {
+    return res.status(404).send('Customer does not exist.')
+  }
+
+  const transaction = await sequelize.transaction()
+
+  try {
+    // Now, do work.
+    const agreement = await RentalAgreement.create(req.body)
+
+    await ParkingSpace.update(
+      { isOccupied: true },
+      {
+        where: {
+          id: parkingSpaceId
+        }
+      }
+    )
+
+    await transaction.commit()
+
+    return res.json(agreement)
+  } catch (error) {
+    debug(error)
+
+    if (transaction) {
+      await transaction.rollback()
+    }
+  }
+
+  // If we make it this far, then something went wrong.
+  res.status(500).send()
+})
+
+// ===========================================================================
+// Update
+// ===========================================================================
+router.put('/', async (req, res) => {})
+
+// ===========================================================================
+// Facilitators
+// ===========================================================================
+
+async function parkingSpaceExists(id) {
+  return await ParkingSpace.findByPk(id, {
+    attributes: ['id']
+  })
+}
+
+// ===========================================================================
+
+async function customerExists(id) {
+  return await Customer.findByPk(id, {
+    attributes: ['id']
+  })
+}
 
 // ===========================================================================
 

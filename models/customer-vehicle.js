@@ -52,4 +52,6 @@ CustomerVehicle.init(
   }
 )
 
+CustomerVehicle.removeAttribute('id')
+
 module.exports = CustomerVehicle

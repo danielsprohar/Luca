@@ -5,11 +5,6 @@ class Invoice extends Model {}
 
 Invoice.init(
   {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrementIdentity: true
-    },
     paymentStatus: {
       type: DataTypes.ENUM,
       allowNull: false,

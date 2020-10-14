@@ -5,11 +5,6 @@ class Payment extends Model {}
 
 Payment.init(
   {
-    id: {
-      type: DataTypes.NUMBER,
-      primaryKey: true,
-      autoIncrementIdentity: true
-    },
     amount: {
       type: DataTypes.DECIMAL,
       allowNull: false
