@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
-  const { count, rows: spaces } = await RentalAgreement.findAndCountAll({
+  const { count, rows: agreements } = await RentalAgreement.findAndCountAll({
     order: ['id'],
     limit: pageSize,
     offset: (pageIndex - 1) * pageSize
@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     count,
     pageIndex,
     pageSize,
-    data: spaces
+    data: agreements
   })
 })
 

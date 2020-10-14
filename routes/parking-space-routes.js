@@ -1,23 +1,27 @@
 const express = require('express')
 const router = express.Router()
-const models = require('../models')
+const { ParkingSpace } = require('../models')
 
 // ===========================================================================
 // Pagination
 // ===========================================================================
 
 router.get('/', async (req, res) => {
-  const ParkingSpace = models.ParkingSpace
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
-  const spaces = await ParkingSpace.findAll({
+  const { count, rows: spaces } = await ParkingSpace.findAllAndCount({
     order: ['id'],
     limit: pageSize,
     offset: (pageIndex - 1) * pageSize
   })
 
-  res.json(spaces)
+  res.json({
+    count,
+    pageIndex,
+    pageSize,
+    data: spaces
+  })
 })
 
 // ===========================================================================
@@ -25,8 +29,6 @@ router.get('/', async (req, res) => {
 // ===========================================================================
 
 router.get('/:spaceId', async (req, res) => {
-  const ParkingSpace = models.ParkingSpace
-
   const space = await ParkingSpace.findOne({
     where: {
       id: req.params.spaceId
@@ -44,9 +46,34 @@ router.get('/:spaceId', async (req, res) => {
 // Create
 // ===========================================================================
 
+router.post('/', async (req, res) => {
+  const { error } = ParkingSpace.prototype.validateInsert(req.body)
+  if (error) {
+    debug(error)
+    return res.status(400).send(error.details[0].message)
+  }
+
+  const space = await ParkingSpace.create(req.body)
+
+  res.json(space)
+})
+
 // ===========================================================================
 // Update
 // ===========================================================================
+router.put('/', async (req, res) => {
+  const { error } = ParkingSpace.prototype.validateUpdate(req.body)
+  if (error) {
+    debug(error)
+    return res.status(400).send(error.details[0].message)
+  }
+
+  const space = await ParkingSpace.create(req.body, {
+    isNewRecord: false
+  })
+
+  res.json(space)
+})
 
 // ===========================================================================
 

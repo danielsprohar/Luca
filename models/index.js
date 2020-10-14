@@ -1,11 +1,11 @@
 const CustomerVehicle = require('./customer-vehicle')
 const Customer = require('./customer')
 const Invoice = require('./invoice')
-const ParkingSpace = require('./parking-space')
+const { ParkingSpace } = require('./parking-space')
 const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
 const Role = require('./role')
-const User = require('./user').User
+const { User } = require('./user')
 
 // ===========================================================================
 // Many-to-Many
