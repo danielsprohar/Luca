@@ -108,23 +108,11 @@ router.put('/:id', async (req, res) => {
   const { error } = RentalAgreement.validateUpdate(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(
-      new HttpResponse({
-        code: 400,
-        success: false,
-        validationErrors: [error.details[0].message]
-      })
-    )
+    return res.status(400).send(error.details[0].message)
   }
 
   if (!(await rentalAgreementExists(req.params.id))) {
-    return res.status(404).send(
-      new HttpResponse({
-        code: 404,
-        success: false,
-        message: 'Rental Agreement does not exist.'
-      })
-    )
+    return res.status(404).send('Rental Agreement does not exist.')
   }
 
   await RentalAgreement.update(req.body, {
@@ -133,7 +121,7 @@ router.put('/:id', async (req, res) => {
     }
   })
 
-  res.status(204)
+  res.status(204).send()
 })
 
 // ===========================================================================

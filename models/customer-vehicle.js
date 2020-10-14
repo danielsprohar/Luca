@@ -8,6 +8,7 @@ CustomerVehicle.init(
     customerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'customer_id',
       references: {
         key: 'id',
         model: 'Customer',
