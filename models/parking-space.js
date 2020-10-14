@@ -2,9 +2,11 @@ const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
+// ===========================================================================
+
 class ParkingSpace extends Model {
   /**
-   * Used to validate the client-side input before creating a new record.
+   * Ensure that `req.body` has the required fields to create a new tuple.
    * @param {*} space
    */
   validateInsert(space) {
@@ -20,7 +22,7 @@ class ParkingSpace extends Model {
   }
 
   /**
-   * Used to validate the client-side input before updating an existing record.
+   * Ensure that the `req.body` has the required fields to update an existing tuple.
    * @param {*} space
    */
   validateUpdate(space) {
@@ -35,6 +37,8 @@ class ParkingSpace extends Model {
     return schema.validate(space)
   }
 }
+
+// ===========================================================================
 
 ParkingSpace.init(
   {
@@ -64,7 +68,9 @@ ParkingSpace.init(
     sequelize,
     modelName: 'ParkingSpace',
     tableName: 'parking_spaces',
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 

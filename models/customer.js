@@ -1,7 +1,48 @@
 const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
+const Joi = require('joi')
 
-class Customer extends Model {}
+class Customer extends Model {
+  /**
+   * Ensure that `req.body` has the required fields to create a new tuple.
+   * @param {*} customer
+   */
+  static validateInsert(customer) {
+    const schema = Joi.object({
+      firstName: Joi.string().min(1).max(32).required(),
+      middleName: Joi.string().min(1).max(32),
+      lastName: Joi.string().min(1).max(32).required(),
+      email: Joi.string().min(1).max(255),
+      phone: Joi.string().min(10).max(32),
+      dlNumber: Joi.string().min(1).max(32),
+      dlState: Joi.string().min(1).max(32),
+      dlPhotoUrl: Joi.string().min(1).max(2048)
+    })
+
+    return schema.validate(customer)
+  }
+
+  /**
+   * Ensure that the `req.body` has the required fields to update an existing tuple.
+   * @param {*} customer
+   */
+  static validateUpdate(customer) {
+    const schema = Joi.object({
+      firstName: Joi.string().min(1).max(32),
+      middleName: Joi.string().min(1).max(32),
+      lastName: Joi.string().min(1).max(32),
+      email: Joi.string().min(1).max(255),
+      phone: Joi.string().min(10).max(32),
+      dlNumber: Joi.string().min(1).max(32),
+      dlState: Joi.string().min(1).max(32),
+      dlPhotoUrl: Joi.string().min(1).max(2048)
+    })
+
+    return schema.validate(customer)
+  }
+}
+
+// ===========================================================================
 
 Customer.init(
   {
@@ -17,19 +58,16 @@ Customer.init(
       allowNull: false
     },
     phone: {
-      type: DataTypes.STRING(32),
-      allowNull: false
+      type: DataTypes.STRING(32)
     },
     email: {
       type: DataTypes.STRING(254),
-      allowNull: false,
       validate: {
         isEmail: true
       }
     },
     normalizedEmail: {
-      type: DataTypes.STRING(254),
-      allowNull: false
+      type: DataTypes.STRING(254)
     },
     gender: {
       type: DataTypes.STRING(8),
@@ -55,6 +93,8 @@ Customer.init(
     modelName: 'Customer',
     tableName: 'customers',
     underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
     indexes: [
       {
         name: 'customer_full_name',
@@ -64,5 +104,6 @@ Customer.init(
   }
 )
 
+// ===========================================================================
 
 module.exports = Customer

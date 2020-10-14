@@ -2,7 +2,13 @@ const { DataTypes, Model, Deferrable } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
+// ===========================================================================
+
 class RentalAgreement extends Model {
+  /**
+   * Ensure that `req.body` has the required fields to create a new tuple.
+   * @param {*} rentalAgreement
+   */
   static validateInsert(rentalAgreement) {
     const schema = Joi.object({
       recurringDueDate: Joi.number().min(1).max(32).required(),
@@ -17,8 +23,8 @@ class RentalAgreement extends Model {
   }
 
   /**
-   * Puts a constraint on the fields that the client can alter.
-   * @param {*} rentalAgreement 
+   * Ensure that the `req.body` has the required fields to update an existing tuple.
+   * @param {*} rentalAgreement
    */
   static validateUpdate(rentalAgreement) {
     const schema = Joi.object({
@@ -86,7 +92,9 @@ RentalAgreement.init(
     sequelize,
     modelName: 'RentalAgreement',
     tableName: 'rental_agreements',
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 

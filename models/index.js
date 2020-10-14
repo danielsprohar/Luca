@@ -1,10 +1,11 @@
 const CustomerVehicle = require('./customer-vehicle')
 const Customer = require('./customer')
 const Invoice = require('./invoice')
-const { ParkingSpace } = require('./parking-space')
+const ParkingSpace = require('./parking-space')
 const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
 const Role = require('./role')
+const Receipt = require('./receipt')
 const { User } = require('./user')
 
 // ===========================================================================
@@ -99,12 +100,29 @@ CustomerVehicle.belongsTo(Customer, {
 
 // ===========================================================================
 
+Receipt.belongsTo(Customer, {
+  foreignKey: {
+    name: 'customerId',
+    field: 'customer_id'
+  }
+})
+
+Receipt.belongsTo(Payment, {
+  foreignKey: {
+    name: 'paymentId',
+    field: 'payment_id'
+  }
+})
+
+// ===========================================================================
+
 const models = {
   CustomerVehicle,
   Customer,
   Invoice,
   ParkingSpace,
   Payment,
+  Receipt,
   RentalAgreement,
   Role,
   User

@@ -2,7 +2,38 @@ const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
-class User extends Model {}
+// ===========================================================================
+
+class User extends Model {
+  /**
+   * Ensure that `req.body` has the required fields to create a new tuple.
+   * @param {*} user
+   */
+  static validateInsert(user) {
+    const schema = Joi.object({
+      username: Joi.string().min(1).max(255).required(),
+      email: Joi.string().min(1).max(255).required(),
+      password: Joi.string().min(1).max(255).required()
+    })
+
+    return schema.validate(user)
+  }
+
+  /**
+   * Ensure that the `req.body` has the required fields to update an existing tuple.
+   * @param {*} user
+   */
+  static validateUpdate(user) {
+    const schema = Joi.object({
+      username: Joi.string().min(1).max(255),
+      email: Joi.string().min(1).max(255)
+    })
+
+    return schema.validate(user)
+  }
+}
+
+// ===========================================================================
 
 User.init(
   {
@@ -26,7 +57,7 @@ User.init(
     },
     hashedPassword: {
       type: DataTypes.STRING(64),
-      allowNull: false,
+      allowNull: false
       // validate: {
       //   is: /^[0-9a-f]{64}$/i
       // }
@@ -36,7 +67,9 @@ User.init(
     sequelize,
     modelName: 'User',
     tableName: 'users',
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 
@@ -56,4 +89,3 @@ function validate(user) {
 // ===========================================================================
 
 module.exports.User = User
-module.exports.validate = validate

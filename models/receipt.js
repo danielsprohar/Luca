@@ -2,7 +2,13 @@ const { DataTypes, Model, Deferrable } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
+// ===========================================================================
+
 class Receipt extends Model {
+  /**
+   * Ensure that `req.body` has the required fields to create a new tuple.
+   * @param {*} receipt
+   */
   static validateInsert(receipt) {
     const schema = Joi.object({
       customerId: Joi.number().min(1).required(),
@@ -42,7 +48,9 @@ Receipt.init(
     sequelize,
     modelName: 'Receipt',
     tableName: 'receipts',
-    underscored: true
+    underscored: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 )
 
