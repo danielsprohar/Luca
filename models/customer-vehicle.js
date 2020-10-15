@@ -71,7 +71,7 @@ CustomerVehicle.init(
       type: DataTypes.STRING(32),
       allowNull: false
     },
-    licensePlateNo: {
+    licensePlateNumber: {
       type: DataTypes.STRING(32),
       allowNull: false
     },

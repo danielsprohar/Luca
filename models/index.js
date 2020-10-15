@@ -5,7 +5,6 @@ const ParkingSpace = require('./parking-space')
 const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
 const Role = require('./role')
-const Receipt = require('./receipt')
 const { User } = require('./user')
 
 // ===========================================================================
@@ -14,54 +13,42 @@ const { User } = require('./user')
 
 User.belongsToMany(Role, {
   through: 'user_roles',
-  foreignKey: {
-    name: 'roleId',
-    field: 'role_id'
-  }
+  timestamps: true,
+  foreignKey: 'user_id'
 })
 
 Role.belongsToMany(User, {
   through: 'user_roles',
-  foreignKey: {
-    name: 'userId',
-    field: 'user_id'
-  }
+  timestamps: true,
+  foreignKey: 'role_id'
 })
 
 // ===========================================================================
 
 Customer.belongsToMany(ParkingSpace, {
-  through: 'parking_space_occupants',
-  foreignKey: {
-    name: 'parkingSpaceId',
-    field: 'parking_space_id'
-  }
+  through: 'occupants',
+  as: 'parking_spaces',
+  foreignKey: 'customer_id'
 })
 
 ParkingSpace.belongsToMany(Customer, {
-  through: 'parking_space_occupants',
-  foreignKey: {
-    name: 'customerId',
-    field: 'customer_id'
-  }
+  through: 'occupants',
+  as: 'customers',
+  foreignKey: 'parking_space_id'
 })
 
 // ===========================================================================
 
 Invoice.belongsToMany(Payment, {
   through: 'invoice_payments',
-  foreignKey: {
-    name: 'paymentId',
-    field: 'payment_id'
-  }
+  as: 'payments',
+  foreignKey: 'invoice_id'
 })
 
 Payment.belongsToMany(Invoice, {
   through: 'invoice_payments',
-  foreignKey: {
-    name: 'invoiceId',
-    field: 'invoice_id'
-  }
+  as: 'invoices',
+  foreignKey: 'payment_id'
 })
 
 // ===========================================================================
@@ -100,29 +87,12 @@ CustomerVehicle.belongsTo(Customer, {
 
 // ===========================================================================
 
-Receipt.belongsTo(Customer, {
-  foreignKey: {
-    name: 'customerId',
-    field: 'customer_id'
-  }
-})
-
-Receipt.belongsTo(Payment, {
-  foreignKey: {
-    name: 'paymentId',
-    field: 'payment_id'
-  }
-})
-
-// ===========================================================================
-
 const models = {
   CustomerVehicle,
   Customer,
   Invoice,
   ParkingSpace,
   Payment,
-  Receipt,
   RentalAgreement,
   Role,
   User

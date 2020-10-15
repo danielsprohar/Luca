@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const { ParkingSpace } = require('../models')
+const debug = require('debug')('luca:parking-spaces')
+const { Customer, ParkingSpace, Occupant } = require('../models')
 
 // ===========================================================================
 // Pagination
@@ -28,10 +29,10 @@ router.get('/', async (req, res) => {
 // By ID
 // ===========================================================================
 
-router.get('/:spaceId', async (req, res) => {
+router.get('/:id', async (req, res) => {
   const space = await ParkingSpace.findOne({
     where: {
-      id: req.params.spaceId
+      id: req.params.id
     }
   })
 
@@ -47,7 +48,7 @@ router.get('/:spaceId', async (req, res) => {
 // ===========================================================================
 
 router.post('/', async (req, res) => {
-  const { error } = ParkingSpace.prototype.validateInsert(req.body)
+  const { error } = ParkingSpace.validateInsert(req.body)
   if (error) {
     debug(error)
     return res.status(400).send(error.details[0].message)
@@ -61,19 +62,60 @@ router.post('/', async (req, res) => {
 // ===========================================================================
 // Update
 // ===========================================================================
-router.put('/', async (req, res) => {
-  const { error } = ParkingSpace.prototype.validateUpdate(req.body)
+router.put('/:id', async (req, res) => {
+  const { error } = ParkingSpace.validateUpdate(req.body)
   if (error) {
     debug(error)
     return res.status(400).send(error.details[0].message)
   }
 
-  const space = await ParkingSpace.create(req.body, {
-    isNewRecord: false
+  if (!(await parkingSpaceExists(req.params.id))) {
+    return res.status(404).send('Parking Space does not exist.')
+  }
+
+  await ParkingSpace.update(req.body, {
+    where: {
+      id: req.params.id
+    }
   })
 
-  res.json(space)
+  res.status(204).send()
 })
+
+// ===========================================================================
+// Get the Occupants
+// ===========================================================================
+
+router.get('/:id/occupants', async (req, res, next) => {
+  const space = await ParkingSpace.findByPk(req.params.id, {
+    include: [
+      {
+        model: Customer,
+        as: 'customers',
+        required: true,
+        subQuery: true,
+        through: {
+          attributes: [],
+          where: {
+            parking_space_id: req.params.id
+          }
+        }
+      }
+    ]
+  })
+
+  res.json(space.customers)
+})
+
+// ===========================================================================
+// Facilitators
+// ===========================================================================
+
+async function parkingSpaceExists(id) {
+  return await ParkingSpace.findByPk(id, {
+    attributes: ['id']
+  })
+}
 
 // ===========================================================================
 

@@ -76,4 +76,4 @@ ParkingSpace.init(
 
 // ===========================================================================
 
-module.exports.ParkingSpace = ParkingSpace
+module.exports = ParkingSpace

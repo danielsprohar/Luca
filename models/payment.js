@@ -1,4 +1,4 @@
-const { DataTypes, Model } = require('sequelize')
+const { DataTypes, Model, Deferrable } = require('sequelize')
 const sequelize = require('../config/database')
 
 // ===========================================================================
@@ -35,6 +35,16 @@ Payment.init(
     },
     details: {
       type: DataTypes.STRING(2048)
+    },
+    customerId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'customer_id',
+      references: {
+        key: 'id',
+        model: 'Customer',
+        deferrable: Deferrable.INITIALLY_IMMEDIATE
+      }
     }
   },
   {
