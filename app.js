@@ -17,8 +17,9 @@ app.use(logger('dev'))
 // Routes
 // ===========================================================================
 
-app.use('/api/parking-spaces', routers.parkingSpaces)
-app.use('/api/rental-agreements', routers.rentalAgreements)
+app.use('/api/customers', routers.customersRouter)
+app.use('/api/parking-spaces', routers.parkingSpacesRouter)
+app.use('/api/rental-agreements', routers.rentalAgreementsRouter)
 
 // ===========================================================================
 

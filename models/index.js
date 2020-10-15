@@ -5,7 +5,7 @@ const ParkingSpace = require('./parking-space')
 const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
 const Role = require('./role')
-const { User } = require('./user')
+const User = require('./user')
 
 // ===========================================================================
 // Many-to-Many
@@ -24,6 +24,8 @@ Role.belongsToMany(User, {
 })
 
 // ===========================================================================
+// Many-to-Many
+// ===========================================================================
 
 Customer.belongsToMany(ParkingSpace, {
   through: 'occupants',
@@ -37,6 +39,8 @@ ParkingSpace.belongsToMany(Customer, {
   foreignKey: 'parking_space_id'
 })
 
+// ===========================================================================
+// Many-to-Many
 // ===========================================================================
 
 Invoice.belongsToMany(Payment, {
@@ -55,34 +59,28 @@ Payment.belongsToMany(Invoice, {
 // One-to-Many
 // ===========================================================================
 
+ParkingSpace.hasMany(RentalAgreement)
 RentalAgreement.belongsTo(ParkingSpace, {
-  foreignKey: {
-    name: 'parkingSpaceId',
-    field: 'parking_space_id'
-  }
+  foreignKey: 'parking_space_id'
 })
 
+Customer.hasMany(RentalAgreement)
 RentalAgreement.belongsTo(Customer, {
-  foreignKey: {
-    name: 'customerId',
-    field: 'customer_id'
-  }
+  foreignKey: 'customer_id'
 })
 
 // ===========================================================================
+// One-to-Many
+// ===========================================================================
 
+RentalAgreement.hasMany(Invoice)
 Invoice.belongsTo(RentalAgreement, {
-  foreignKey: {
-    name: 'rentalAgreementId',
-    field: 'rental_agreement_id'
-  }
+  foreignKey: 'rental_agreement_id'
 })
 
+Customer.hasMany(CustomerVehicle)
 CustomerVehicle.belongsTo(Customer, {
-  foreignKey: {
-    name: 'customerId',
-    field: 'customer_id'
-  }
+  foreignKey: 'customer_id'
 })
 
 // ===========================================================================

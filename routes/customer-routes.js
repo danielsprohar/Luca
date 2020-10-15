@@ -1,12 +1,14 @@
 const express = require('express')
 const router = express.Router()
-const { Customer, CustomerVehicle } = require('../models')
+const debug = require('debug')('luca:customers')
+
+const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
 
 // ===========================================================================
 // Pagination
 // ===========================================================================
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
@@ -28,7 +30,7 @@ router.get('/', async (req, res) => {
 // By ID
 // ===========================================================================
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   const customer = await Customer.findOne({
     where: {
       id: req.params.id
@@ -47,7 +49,7 @@ router.get('/:id', async (req, res) => {
 // Create
 // ===========================================================================
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { error } = Customer.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -62,18 +64,37 @@ router.post('/', async (req, res) => {
 // ===========================================================================
 // Update
 // ===========================================================================
-router.put('/', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   const { error } = Customer.prototype.validateUpdate(req.body)
   if (error) {
     debug(error)
     return res.status(400).send(error.details[0].message)
   }
 
-  const space = await Customer.create(req.body, {
-    isNewRecord: false
-  })
+  // TODO: Implement this.
 
   res.json(space)
+})
+
+// ===========================================================================
+// Associated resources
+// ===========================================================================
+
+router.get('/:id/rental-agreements', async (req, res, next) => {
+  const agreements = await RentalAgreement.findAll({
+    where: {
+      customerId: req.params.id
+    },
+    include: [
+      {
+        model: Customer,
+        attributes: [],
+        required: true
+      }
+    ]
+  })
+
+  res.json(agreements)
 })
 
 // ===========================================================================

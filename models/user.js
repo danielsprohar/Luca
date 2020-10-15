@@ -74,18 +74,5 @@ User.init(
 )
 
 // ===========================================================================
-// Model validation
-// ===========================================================================
-function validate(user) {
-  const schema = Joi.object({
-    username: Joi.string().min(1).max(255).required(),
-    email: Joi.string().min(1).max(255).required(),
-    password: Joi.string().min(1).max(255).required()
-  })
 
-  return schema.validate(user)
-}
-
-// ===========================================================================
-
-module.exports.User = User
+module.exports = User

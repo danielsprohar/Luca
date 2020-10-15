@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "windowsDebug": "@powershell -Command $env:DEBUG='luca:*';nodemon app.js"
+    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon app.js"
   },
   "keywords": [
     "pms"
