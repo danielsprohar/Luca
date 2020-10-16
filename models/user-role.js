@@ -1,15 +1,15 @@
 const { Model } = require('sequelize')
 const sequelize = require('../config/database')
 
-class InvoicePayment extends Model {}
+class UserRole extends Model {}
 
 // ===========================================================================
 
-InvoicePayment.init(
+UserRole.init(
   {},
   {
     sequelize,
-    tableName: 'invoice_payments',
+    tableName: 'user_roles',
     underscored: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at'
@@ -18,4 +18,4 @@ InvoicePayment.init(
 
 // ===========================================================================
 
-module.exports = InvoicePayment
+module.exports = UserRole

@@ -19,6 +19,7 @@ app.use(logger('dev'))
 // Routes
 // ===========================================================================
 
+app.use('/api/auth', routers.authRouter)
 app.use('/api/customers', routers.customersRouter)
 app.use('/api/invoices', routers.invoicesRouter)
 app.use('/api/parking-spaces', routers.parkingSpacesRouter)

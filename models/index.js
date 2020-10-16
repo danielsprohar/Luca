@@ -7,21 +7,30 @@ const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
 const Role = require('./role')
 const User = require('./user')
+const UserRole = require('./user-role')
 
 // ===========================================================================
 // Many-to-Many
 // ===========================================================================
 
 User.belongsToMany(Role, {
-  through: 'user_roles',
+  through: UserRole,
   timestamps: true,
-  foreignKey: 'user_id'
+  as: 'roles',
+  foreignKey: {
+    name: 'userId',
+    field: 'user_id'
+  }
 })
 
 Role.belongsToMany(User, {
-  through: 'user_roles',
+  through: UserRole,
   timestamps: true,
-  foreignKey: 'role_id'
+  as: 'users',
+  foreignKey: {
+    name: 'roleId',
+    field: 'role_id'
+  }
 })
 
 // ===========================================================================
@@ -137,7 +146,8 @@ const models = {
   Payment,
   RentalAgreement,
   Role,
-  User
+  User,
+  UserRole
 }
 
 module.exports = models
