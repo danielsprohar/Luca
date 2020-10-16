@@ -42,7 +42,7 @@ class Invoice extends Model {
 
 Invoice.init(
   {
-    paymentStatus: {
+    invoiceStatus: {
       type: DataTypes.ENUM,
       allowNull: false,
       values: ['not paid', 'paid', 'bad credit']

@@ -2,7 +2,12 @@ const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:rental-agreements')
-const { Customer, ParkingSpace, RentalAgreement } = require('../models')
+const {
+  Customer,
+  Invoice,
+  ParkingSpace,
+  RentalAgreement
+} = require('../models')
 
 // ===========================================================================
 // Pagination
@@ -17,8 +22,6 @@ router.get('/', async (req, res) => {
     limit: pageSize,
     offset: (pageIndex - 1) * pageSize
   })
-
-  // TODO: Add a PaginatedResponse wrapper class
 
   res.json({
     count,
@@ -145,6 +148,41 @@ router.put('/:id/deactivate', async (req, res) => {
   )
 
   res.status(204).send()
+})
+
+// ===========================================================================
+// Get all the invoices that are associated with the given rental agreement
+// ===========================================================================
+router.get('/:id/invoices', async (req, res, next) => {
+  if (!(await rentalAgreementExists(req.params.id))) {
+    return res.status(404).send('Rental Agreement does not exist')
+  }
+
+  const pageSize = req.params.pageSize || 30
+  const pageIndex = req.params.pageIndex || 1
+  const predicate = { rentalAgreementId: req.params.id }
+
+  if (req.query.isPaid !== undefined) {
+    predicate.invoiceStatus = Number.parseInt(req.query.isPaid)
+      ? 'paid'
+      : 'not paid'
+  } else if (req.query.badCredit !== undefined && req.query.badCredit) {
+    predicate.invoiceStatus = 'bad credit'
+  }
+
+  const { count, rows: invoices } = await Invoice.findAndCountAll({
+    where: predicate,
+    order: ['id'],
+    limit: pageSize,
+    offset: (pageIndex - 1) * pageSize
+  })
+
+  res.json({
+    pageIndex,
+    pageSize,
+    count,
+    data: invoices
+  })
 })
 
 // ===========================================================================

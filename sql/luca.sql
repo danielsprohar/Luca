@@ -37,7 +37,7 @@ CREATE TYPE public.space_type AS ENUM (
 	'storage'
 );
 
-CREATE TYPE public.payment_status AS ENUM (
+CREATE TYPE public.invoice_status AS ENUM (
 	'not paid', 
 	'paid', 
 	'bad credit'
