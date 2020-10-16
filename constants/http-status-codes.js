@@ -3,7 +3,7 @@
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
  */
-const statusCodes = {
+const httpStatusCodes = {
   /**
    * 400
    * 
@@ -51,4 +51,4 @@ const statusCodes = {
   internalServerError: 500
 }
 
-module.exports = statusCodes
+module.exports = httpStatusCodes

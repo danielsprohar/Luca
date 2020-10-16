@@ -43,6 +43,13 @@ router.get('/:id', async (req, res, next) => {
     ]
   })
 
+  debug(req.headers.authorization)
+
+  const header = req.headers.authorization.split(' ')
+  debug('key   = ' + header[0])
+  debug('value = ' + header[1])
+  
+
   if (!customer) {
     return res.status(404).send('Resource does not exist.')
   }

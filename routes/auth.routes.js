@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:auth')
-const httpStatus = require('../constants/http-status-codes')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const db = require('../config/database')
+const { httpStatusCodes } = require('../constants')
 const { User, Role, UserRole } = require('../models')
 
 // ===========================================================================
@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
   if (error) {
     debug(error)
     return res
-      .status(httpStatus.unprocessableEntity)
+      .status(httpStatusCodes.unprocessableEntity)
       .send(error.details[0].message)
   }
 
@@ -38,7 +38,9 @@ router.post('/login', async (req, res) => {
 
   // Check for an invalid email
   if (!user) {
-    return res.status(httpStatus.unauthorized).send('Invalid email or password')
+    return res
+      .status(httpStatusCodes.unauthorized)
+      .send('Invalid email or password')
   }
 
   // Check for an invalid password
@@ -47,7 +49,9 @@ router.post('/login', async (req, res) => {
     user.hashedPassword
   )
   if (!isAuthenticated) {
-    return res.status(httpStatus.unauthorized).send('Invalid email or password')
+    return res
+      .status(httpStatusCodes.unauthorized)
+      .send('Invalid email or password')
   }
 
   res.json({
@@ -65,7 +69,7 @@ router.post('/register', async (req, res, next) => {
   const { error } = User.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(httpStatus.badRequest).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   const userCount = await User.count({
@@ -76,7 +80,7 @@ router.post('/register', async (req, res, next) => {
 
   if (userCount === undefined || userCount === null) {
     return res
-      .status(httpStatus.badRequest)
+      .status(httpStatusCodes.badRequest)
       .send('The provided email already exists.')
   }
 
@@ -116,7 +120,7 @@ router.post('/register', async (req, res, next) => {
     }
   }
 
-  res.status(httpStatus.internalServerError).send()
+  res.status(httpStatusCodes.internalServerError).send()
 })
 
 // ===========================================================================
