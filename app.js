@@ -20,6 +20,7 @@ app.use(logger('dev'))
 // ===========================================================================
 
 app.use('/api/customers', routers.customersRouter)
+app.use('/api/invoices', routers.invoicesRouter)
 app.use('/api/parking-spaces', routers.parkingSpacesRouter)
 app.use('/api/rental-agreements', routers.rentalAgreementsRouter)
 

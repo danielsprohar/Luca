@@ -45,17 +45,7 @@ Invoice.init(
     invoiceStatus: {
       type: DataTypes.ENUM,
       allowNull: false,
-      values: ['not paid', 'paid', 'bad credit']
-    },
-    rentalAgreementId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'rental_agreement_id',
-      references: {
-        key: 'id',
-        model: 'RentalAgreement',
-        deferrable: Deferrable.INITIALLY_IMMEDIATE
-      }
+      values: ['bad credit', 'not paid', 'paid', 'partially paid']
     },
     paymentDueDate: {
       type: DataTypes.DATEONLY,

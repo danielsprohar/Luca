@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // Create
 // ===========================================================================
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { error } = RentalAgreement.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -73,6 +73,7 @@ router.post('/', async (req, res) => {
     return res.status(404).send('Customer does not exist.')
   }
 
+  // Start the transaction
   const transaction = await sequelize.transaction()
 
   try {
@@ -97,6 +98,8 @@ router.post('/', async (req, res) => {
     if (transaction) {
       await transaction.rollback()
     }
+
+    next(err)
   }
 
   // If we make it this far, then something went wrong.

@@ -38,9 +38,10 @@ CREATE TYPE public.space_type AS ENUM (
 );
 
 CREATE TYPE public.invoice_status AS ENUM (
-	'not paid', 
-	'paid', 
 	'bad credit'
+	'not paid', 
+	'paid',
+	'partially paid'
 );
 
 CREATE TYPE public.rental_agreement_type AS ENUM (
