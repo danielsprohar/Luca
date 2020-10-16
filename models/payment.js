@@ -25,7 +25,7 @@ class Payment extends Model {
 Payment.init(
   {
     amount: {
-      type: DataTypes.DECIMAL,
+      type: DataTypes.DECIMAL(7,2),
       allowNull: false
     },
     paymentMethod: {
@@ -36,16 +36,6 @@ Payment.init(
     },
     details: {
       type: DataTypes.STRING(2048)
-    },
-    customerId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'customer_id',
-      references: {
-        key: 'id',
-        model: 'Customer',
-        deferrable: Deferrable.INITIALLY_IMMEDIATE
-      }
     }
   },
   {
