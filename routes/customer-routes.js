@@ -35,7 +35,12 @@ router.get('/:id', async (req, res, next) => {
     where: {
       id: req.params.id
     },
-    include: [CustomerVehicle]
+    include: [
+      {
+        model: CustomerVehicle,
+        as: 'vehicles'
+      }
+    ]
   })
 
   if (!customer) {
@@ -64,20 +69,34 @@ router.post('/', async (req, res, next) => {
 // ===========================================================================
 // Update
 // ===========================================================================
+
 router.put('/:id', async (req, res, next) => {
-  const { error } = Customer.prototype.validateUpdate(req.body)
-  if (error) {
+  try {
+    const { error } = Customer.validateUpdate(req.body)
+    if (error) {
+      debug(error)
+      return res.status(400).send(error.details[0].message)
+    }
+
+    if (!(await customerExists(req.params.id))) {
+      return res.status(404).send('Customer does not exist.')
+    }
+
+    await Customer.update(req.body, {
+      where: {
+        id: req.params.id
+      }
+    })
+
+    res.status(204).send()
+  } catch (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    next(error)
   }
-
-  // TODO: Implement this.
-
-  res.json(space)
 })
 
 // ===========================================================================
-// Associated resources
+// Get a customer's rental agreements
 // ===========================================================================
 
 router.get('/:id/rental-agreements', async (req, res, next) => {
@@ -96,6 +115,16 @@ router.get('/:id/rental-agreements', async (req, res, next) => {
 
   res.json(agreements)
 })
+
+// ===========================================================================
+// Facilitators
+// ===========================================================================
+
+async function customerExists(id) {
+  return await Customer.findByPk(id, {
+    attributes: ['id']
+  })
+}
 
 // ===========================================================================
 

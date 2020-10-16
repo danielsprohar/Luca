@@ -78,7 +78,7 @@ Invoice.belongsTo(RentalAgreement, {
   foreignKey: 'rental_agreement_id'
 })
 
-Customer.hasMany(CustomerVehicle)
+Customer.hasMany(CustomerVehicle, { as: 'vehicles' })
 CustomerVehicle.belongsTo(Customer, {
   foreignKey: 'customer_id'
 })
