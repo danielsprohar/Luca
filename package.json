@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon app.js"
+    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon app.js",
+    "test": "jest"
   },
   "keywords": [
     "pms"
@@ -26,5 +27,7 @@
     "sequelize": "^6.3.5",
     "winston": "^3.3.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "jest": "^26.5.3"
+  }
 }
