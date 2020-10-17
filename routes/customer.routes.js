@@ -3,7 +3,7 @@ const router = express.Router()
 const debug = require('debug')('luca:customers')
 const { httpStatusCodes } = require('../constants')
 const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
-const { admin } = require('../middleware')
+const { admin, paramValidation } = require('../middleware')
 
 // ===========================================================================
 // Pagination
@@ -13,73 +13,78 @@ router.get('/', async (req, res, next) => {
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
-  const { count, rows: customers } = await Customer.findAllAndCount({
-    order: ['id'],
-    limit: pageSize,
-    offset: (pageIndex - 1) * pageSize
-  })
+  try {
+    const { count, rows: customers } = await Customer.findAllAndCount({
+      order: ['id'],
+      limit: pageSize,
+      offset: (pageIndex - 1) * pageSize
+    })
 
-  res.json({
-    count,
-    pageIndex,
-    pageSize,
-    data: customers
-  })
+    res.json({
+      count,
+      pageIndex,
+      pageSize,
+      data: customers
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
 // ===========================================================================
 // By ID
 // ===========================================================================
 
-router.get('/:id', async (req, res, next) => {
-  const customer = await Customer.findOne({
-    where: {
-      id: req.params.id
-    },
-    include: [
-      {
-        model: CustomerVehicle,
-        as: 'vehicles'
-      }
-    ]
-  })
+router.get('/:id', paramValidation, async (req, res, next) => {
+  try {
+    const customer = await Customer.findOne({
+      where: {
+        id: req.params.id
+      },
+      include: [
+        {
+          model: CustomerVehicle,
+          as: 'vehicles'
+        }
+      ]
+    })
 
-  if (!customer) {
-    return res.status(httpStatusCodes.notFound).send('Resource does not exist.')
+    if (!customer) {
+      return res
+        .status(httpStatusCodes.notFound)
+        .send('Resource does not exist.')
+    }
+
+    res.json(customer)
+  } catch (error) {
+    next(error)
   }
-
-  res.json(customer)
 })
 
 // ===========================================================================
 // Create
 // ===========================================================================
 
-router.post('/', async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(httpStatusCodes.unauthorized).send()
-  }
-
+router.post('/', admin, async (req, res, next) => {
   const { error } = Customer.validateInsert(req.body)
   if (error) {
     debug(error)
     return res.status(400).send(error.details[0].message)
   }
 
-  const space = await Customer.create(req.body)
-
-  res.status(httpStatusCodes.created).send(space)
+  try {
+    const space = await Customer.create(req.body)
+    res.status(httpStatusCodes.created).send(space)
+  } catch (error) {
+    next(error)
+  }
 })
 
 // ===========================================================================
 // Update
 // ===========================================================================
 
-router.put('/:id', async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(httpStatusCodes.unauthorized).send()
-  }
-
+router.put('/:id', [admin, paramValidation], async (req, res, next) => {
   try {
     const { error } = Customer.validateUpdate(req.body)
     if (error) {
@@ -103,7 +108,6 @@ router.put('/:id', async (req, res, next) => {
 
     res.status(httpStatusCodes.noContent).send()
   } catch (error) {
-    debug(error)
     next(error)
   }
 })
@@ -112,22 +116,30 @@ router.put('/:id', async (req, res, next) => {
 // Get a customer's rental agreements
 // ===========================================================================
 
-router.get('/:id/rental-agreements', async (req, res, next) => {
-  const agreements = await RentalAgreement.findAll({
-    where: {
-      customerId: req.params.id
-    },
-    include: [
-      {
-        model: Customer,
-        attributes: [],
-        required: true
-      }
-    ]
-  })
+router.get(
+  '/:id/rental-agreements',
+  paramValidation,
+  async (req, res, next) => {
+    try {
+      const agreements = await RentalAgreement.findAll({
+        where: {
+          customerId: req.params.id
+        },
+        include: [
+          {
+            model: Customer,
+            attributes: [],
+            required: true
+          }
+        ]
+      })
 
-  res.json(agreements)
-})
+      res.json(agreements)
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
 // ===========================================================================
 // Facilitators
