@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:parking-spaces')
-const { Customer, ParkingSpace, Occupant } = require('../models')
+const { Customer, ParkingSpace } = require('../models')
+const { httpStatusCodes } = require('../constants')
 
 // ===========================================================================
 // Pagination
@@ -37,7 +38,7 @@ router.get('/:id', async (req, res) => {
   })
 
   if (!space) {
-    return res.status(404).send('Resource does not exist.')
+    return res.status(httpStatusCodes.notFound).send('Resource does not exist.')
   }
 
   res.json(space)
@@ -48,29 +49,39 @@ router.get('/:id', async (req, res) => {
 // ===========================================================================
 
 router.post('/', async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = ParkingSpace.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.notFound).send(error.details[0].message)
   }
 
   const space = await ParkingSpace.create(req.body)
 
-  res.json(space)
+  res.status(httpStatusCodes.created).send(space)
 })
 
 // ===========================================================================
 // Update
 // ===========================================================================
 router.put('/:id', async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = ParkingSpace.validateUpdate(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   if (!(await parkingSpaceExists(req.params.id))) {
-    return res.status(404).send('Parking Space does not exist.')
+    return res
+      .status(httpStatusCodes.notFound)
+      .send('Parking Space does not exist.')
   }
 
   await ParkingSpace.update(req.body, {
@@ -79,7 +90,7 @@ router.put('/:id', async (req, res) => {
     }
   })
 
-  res.status(204).send()
+  res.status(httpStatusCodes.noContent).send()
 })
 
 // ===========================================================================

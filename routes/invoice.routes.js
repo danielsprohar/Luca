@@ -2,6 +2,7 @@ const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:invoices')
+const { httpStatusCodes } = require('../constants')
 
 const {
   Invoice,
@@ -37,25 +38,41 @@ router.get('/', async (req, res, next) => {
 // ===========================================================================
 
 router.get('/:id', async (req, res, next) => {
-  const invoice = await Invoice.findByPk(req.params.id)
+  const invoice = await Invoice.findByPk(req.params.id, {
+    include: [
+      {
+        model: Payment,
+        as: 'payments',
+        attributes: ['amount'],
+        // This prevents Sequelize from fetching the Junction table.
+        through: {
+          attributes: []
+        }
+      }
+    ]
+  })
 
   res.json(invoice)
 })
 
 // ===========================================================================
-// Create
+// Create an invoice
 // ===========================================================================
 
 router.post('/', async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = Invoice.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   const space = await Invoice.create(req.body)
 
-  res.json(space)
+  res.status(httpStatusCodes.created).send(space)
 })
 
 // ===========================================================================
@@ -63,15 +80,19 @@ router.post('/', async (req, res, next) => {
 // ===========================================================================
 
 router.post('/:id/make-a-payment', async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   // Some validation
   if (!(await invoiceExists(req.params.id))) {
-    return res.status(404).send('Invoice does not exist.')
+    return res.status(httpStatusCodes.notFound).send('Invoice does not exist.')
   }
 
   const { error } = Payment.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   // Fetch the resource
@@ -94,7 +115,9 @@ router.post('/:id/make-a-payment', async (req, res, next) => {
     ]
   })
 
+  // =========================================================================
   // Start the transaction
+  // =========================================================================
   const transaction = await sequelize.transaction()
 
   try {
@@ -102,13 +125,13 @@ router.post('/:id/make-a-payment', async (req, res, next) => {
     const payment = await Payment.create(req.body)
 
     // Make the association between the payment and invoice
-    const invoicePayment = await InvoicePayment.create({
+    await InvoicePayment.create({
       invoice_id: invoice.id,
       payment_id: payment.id
     })
 
     // update the invoice status
-    const amountDue = getAmountDue()
+    const amountDue = getAmountDue(invoice)
 
     if (payment.amount >= amountDue) {
       invoice.invoiceStatus = 'paid'
@@ -116,19 +139,22 @@ router.post('/:id/make-a-payment', async (req, res, next) => {
       invoice.invoiceStatus = 'partially paid'
     }
 
+    await invoice.save()
+
     // Save changes
     await transaction.commit()
 
-    res.json(payment)
+    return res.status(httpStatusCodes.created).send(payment)
   } catch (error) {
     debug(error)
+
     if (transaction) {
       await transaction.rollback()
     }
   }
 
   // If we make it this far, then something went wrong.
-  res.status(500).send()
+  res.status(httpStatusCodes.internalServerError).send()
 })
 
 // ===========================================================================
@@ -148,6 +174,10 @@ async function invoiceExists(id) {
  * @param {Invoice} invoice
  */
 function getAmountDue(invoice) {
+  if (invoice.payments.length === 0) {
+    return invoice.rentalAgreement.recurringRate
+  }
+
   const paymentAmounts = invoice.payments.map((p) =>
     Number.parseFloat(p.amount)
   )

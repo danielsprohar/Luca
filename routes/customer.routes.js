@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:customers')
-
+const { httpStatusCodes } = require('../constants')
 const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
 
 // ===========================================================================
@@ -43,15 +43,8 @@ router.get('/:id', async (req, res, next) => {
     ]
   })
 
-  debug(req.headers.authorization)
-
-  const header = req.headers.authorization.split(' ')
-  debug('key   = ' + header[0])
-  debug('value = ' + header[1])
-  
-
   if (!customer) {
-    return res.status(404).send('Resource does not exist.')
+    return res.status(httpStatusCodes.notFound).send('Resource does not exist.')
   }
 
   res.json(customer)
@@ -62,6 +55,10 @@ router.get('/:id', async (req, res, next) => {
 // ===========================================================================
 
 router.post('/', async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = Customer.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -70,7 +67,7 @@ router.post('/', async (req, res, next) => {
 
   const space = await Customer.create(req.body)
 
-  res.json(space)
+  res.status(httpStatusCodes.created).send(space)
 })
 
 // ===========================================================================
@@ -78,15 +75,23 @@ router.post('/', async (req, res, next) => {
 // ===========================================================================
 
 router.put('/:id', async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   try {
     const { error } = Customer.validateUpdate(req.body)
     if (error) {
       debug(error)
-      return res.status(400).send(error.details[0].message)
+      return res
+        .status(httpStatusCodes.badRequest)
+        .send(error.details[0].message)
     }
 
     if (!(await customerExists(req.params.id))) {
-      return res.status(404).send('Customer does not exist.')
+      return res
+        .status(httpStatusCodes.notFound)
+        .send('Customer does not exist.')
     }
 
     await Customer.update(req.body, {
@@ -95,7 +100,7 @@ router.put('/:id', async (req, res, next) => {
       }
     })
 
-    res.status(204).send()
+    res.status(httpStatusCodes.noContent).send()
   } catch (error) {
     debug(error)
     next(error)

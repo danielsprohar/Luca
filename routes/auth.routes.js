@@ -11,7 +11,6 @@ const { User, Role, UserRole } = require('../models')
 // Sign in a User
 // ===========================================================================
 
-// /api/auth/login
 router.post('/login', async (req, res) => {
   const { error } = User.validateLogin(req.body)
   if (error) {
@@ -64,7 +63,6 @@ router.post('/login', async (req, res) => {
 // Create a new user
 // ===========================================================================
 
-// /api/auth/register
 router.post('/register', async (req, res, next) => {
   const { error } = User.validateInsert(req.body)
   if (error) {
@@ -112,7 +110,10 @@ router.post('/register', async (req, res, next) => {
 
     await transaction.commit()
 
-    return res.json(mapToDto(user))
+    return res.json({
+      user: mapToDto(user),
+      token: buildJwtToken(user)
+    })
   } catch (error) {
     debug(error)
     if (transaction) {
@@ -158,7 +159,7 @@ function buildJwtToken(user) {
   return jwt.sign(
     {
       id: user.id,
-      admin: isAdmin
+      isAdmin: isAdmin
     },
     process.env.JWT_KEY,
     {

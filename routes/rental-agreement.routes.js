@@ -2,6 +2,7 @@ const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:rental-agreements')
+const { httpStatusCodes } = require('../constants')
 const {
   Customer,
   Invoice,
@@ -44,7 +45,7 @@ router.get('/:id', async (req, res) => {
   })
 
   if (!space) {
-    return res.status(404).send('Resource does not exist.')
+    return res.status(httpStatusCodes.notFound).send('Resource does not exist.')
   }
 
   res.json(space)
@@ -55,10 +56,14 @@ router.get('/:id', async (req, res) => {
 // ===========================================================================
 
 router.post('/', async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = RentalAgreement.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   // Do some more validation.
@@ -66,11 +71,13 @@ router.post('/', async (req, res, next) => {
   const customerId = req.body.customerId
 
   if (!(await parkingSpaceExists(parkingSpaceId))) {
-    return res.status(404).send('Parking Space does not exist.')
+    return res
+      .status(httpStatusCodes.notFound)
+      .send('Parking Space does not exist.')
   }
 
   if (!(await customerExists(customerId))) {
-    return res.status(404).send('Customer does not exist.')
+    return res.status(httpStatusCodes.notFound).send('Customer does not exist.')
   }
 
   // Start the transaction
@@ -91,7 +98,7 @@ router.post('/', async (req, res, next) => {
 
     await transaction.commit()
 
-    return res.send(agreement)
+    return res.status(httpStatusCodes.created).send(agreement)
   } catch (error) {
     debug(error)
 
@@ -103,7 +110,7 @@ router.post('/', async (req, res, next) => {
   }
 
   // If we make it this far, then something went wrong.
-  res.status(500).send()
+  res.status(httpStatusCodes.internalServerError).send()
 })
 
 // ===========================================================================
@@ -111,14 +118,20 @@ router.post('/', async (req, res, next) => {
 // ===========================================================================
 
 router.put('/:id', async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.status(httpStatusCodes.unauthorized).send()
+  }
+
   const { error } = RentalAgreement.validateUpdate(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   if (!(await rentalAgreementExists(req.params.id))) {
-    return res.status(404).send('Rental Agreement does not exist.')
+    return res
+      .status(httpStatusCodes.notFound)
+      .send('Rental Agreement does not exist.')
   }
 
   await RentalAgreement.update(req.body, {
@@ -127,7 +140,7 @@ router.put('/:id', async (req, res) => {
     }
   })
 
-  res.status(204).send()
+  res.status(httpStatusCodes.notFound).send()
 })
 
 // ===========================================================================
@@ -136,7 +149,9 @@ router.put('/:id', async (req, res) => {
 
 router.put('/:id/deactivate', async (req, res) => {
   if (!(await rentalAgreementExists(req.params.id))) {
-    return res.status(404).send('Rental Agreement does not exist.')
+    return res
+      .status(httpStatusCodes.notFound)
+      .send('Rental Agreement does not exist.')
   }
 
   await RentalAgreement.update(
@@ -150,7 +165,7 @@ router.put('/:id/deactivate', async (req, res) => {
     }
   )
 
-  res.status(204).send()
+  res.status(httpStatusCodes.noContent).send()
 })
 
 // ===========================================================================
@@ -158,7 +173,9 @@ router.put('/:id/deactivate', async (req, res) => {
 // ===========================================================================
 router.get('/:id/invoices', async (req, res, next) => {
   if (!(await rentalAgreementExists(req.params.id))) {
-    return res.status(404).send('Rental Agreement does not exist')
+    return res
+      .status(httpStatusCodes.notFound)
+      .send('Rental Agreement does not exist')
   }
 
   const pageSize = req.params.pageSize || 30
