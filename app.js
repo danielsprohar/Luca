@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 5000
 
 const app = express()
 
-// app.use(cors(corsOptions))
+// app.use(cors({
+
+// }))
+
 app.use(express.json())
 app.use(helmet())
 app.use(logger('dev'))
@@ -20,13 +23,14 @@ app.use(logger('dev'))
 // ===========================================================================
 
 app.use('/api/auth', routers.authRouter)
-
-app.use(middleware.auth)
+// app.use(middleware.auth)
 
 app.use('/api/customers', routers.customersRouter)
 app.use('/api/invoices', routers.invoicesRouter)
 app.use('/api/parking-spaces', routers.parkingSpacesRouter)
 app.use('/api/rental-agreements', routers.rentalAgreementsRouter)
+
+app.use(middleware.errorHandler)
 
 // ===========================================================================
 

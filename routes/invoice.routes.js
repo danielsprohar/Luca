@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:invoices')
 const { httpStatusCodes } = require('../constants')
+const { admin, paramValidation } = require('../middleware')
 
 const {
   Invoice,
@@ -19,25 +20,29 @@ router.get('/', async (req, res, next) => {
   const pageSize = req.params.pageSize || 30
   const pageIndex = req.params.pageIndex || 1
 
-  const { count, rows: invoices } = await Invoice.findAllAndCount({
-    order: ['id'],
-    limit: pageSize,
-    offset: (pageIndex - 1) * pageSize
-  })
+  try {
+    const { count, rows: invoices } = await Invoice.findAllAndCount({
+      order: ['id'],
+      limit: pageSize,
+      offset: (pageIndex - 1) * pageSize
+    })
 
-  res.json({
-    count,
-    pageIndex,
-    pageSize,
-    data: invoices
-  })
+    res.json({
+      count,
+      pageIndex,
+      pageSize,
+      data: invoices
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
 // ===========================================================================
 // By ID
 // ===========================================================================
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', paramValidation, async (req, res) => {
   const invoice = await Invoice.findByPk(req.params.id, {
     include: [
       {
@@ -59,103 +64,105 @@ router.get('/:id', async (req, res, next) => {
 // Create an invoice
 // ===========================================================================
 
-router.post('/', async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(httpStatusCodes.unauthorized).send()
-  }
-
+router.post('/', admin, async (req, res, next) => {
   const { error } = Invoice.validateInsert(req.body)
   if (error) {
     debug(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
-  const space = await Invoice.create(req.body)
-
-  res.status(httpStatusCodes.created).send(space)
+  try {
+    const space = await Invoice.create(req.body)
+    res.status(httpStatusCodes.created).send(space)
+  } catch (error) {
+    next(error)
+  }
 })
 
 // ===========================================================================
 // Make a payment
 // ===========================================================================
 
-router.post('/:id/make-a-payment', async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return res.status(httpStatusCodes.unauthorized).send()
-  }
-
-  // Some validation
-  if (!(await invoiceExists(req.params.id))) {
-    return res.status(httpStatusCodes.notFound).send('Invoice does not exist.')
-  }
-
-  const { error } = Payment.validateInsert(req.body)
-  if (error) {
-    debug(error)
-    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
-  }
-
-  // Fetch the resource
-  const invoice = await Invoice.findByPk(req.params.id, {
-    include: [
-      {
-        model: RentalAgreement,
-        attributes: [['recurring_rate', 'recurringRate']],
-        as: 'rentalAgreement'
-      },
-      {
-        model: Payment,
-        as: 'payments',
-        attributes: ['amount'],
-        // This prevents Sequelize from fetching the Junction table.
-        through: {
-          attributes: []
-        }
+router.post(
+  '/:id/make-a-payment',
+  [admin, paramValidation],
+  async (req, res, next) => {
+    try {
+      // Some validation
+      if (!(await invoiceExists(req.params.id))) {
+        return res
+          .status(httpStatusCodes.notFound)
+          .send('Invoice does not exist.')
       }
-    ]
-  })
 
-  // =========================================================================
-  // Start the transaction
-  // =========================================================================
-  const transaction = await sequelize.transaction()
+      const { error } = Payment.validateInsert(req.body)
+      if (error) {
+        debug(error)
+        return res
+          .status(httpStatusCodes.badRequest)
+          .send(error.details[0].message)
+      }
 
-  try {
-    // Make the payment
-    const payment = await Payment.create(req.body)
+      // Fetch the resource
+      const invoice = await Invoice.findByPk(req.params.id, {
+        include: [
+          {
+            model: RentalAgreement,
+            attributes: [['recurring_rate', 'recurringRate']],
+            as: 'rentalAgreement'
+          },
+          {
+            model: Payment,
+            as: 'payments',
+            attributes: ['amount'],
+            // This prevents Sequelize from fetching the Junction table.
+            through: {
+              attributes: []
+            }
+          }
+        ]
+      })
 
-    // Make the association between the payment and invoice
-    await InvoicePayment.create({
-      invoice_id: invoice.id,
-      payment_id: payment.id
-    })
+      // =========================================================================
+      // Start the transaction
+      // =========================================================================
+      const transaction = await sequelize.transaction()
 
-    // update the invoice status
-    const amountDue = getAmountDue(invoice)
+      // Make the payment
+      const payment = await Payment.create(req.body)
 
-    if (payment.amount >= amountDue) {
-      invoice.invoiceStatus = 'paid'
-    } else {
-      invoice.invoiceStatus = 'partially paid'
-    }
+      // Make the association between the payment and invoice
+      await InvoicePayment.create({
+        invoice_id: invoice.id,
+        payment_id: payment.id
+      })
 
-    await invoice.save()
+      // update the invoice status
+      const amountDue = getAmountDue(invoice)
 
-    // Save changes
-    await transaction.commit()
+      if (payment.amount >= amountDue) {
+        invoice.invoiceStatus = 'paid'
+      } else {
+        invoice.invoiceStatus = 'partially paid'
+      }
 
-    return res.status(httpStatusCodes.created).send(payment)
-  } catch (error) {
-    debug(error)
+      await invoice.save()
 
-    if (transaction) {
-      await transaction.rollback()
+      // Save changes
+      await transaction.commit()
+
+      res.status(httpStatusCodes.created).send(payment)
+    } catch (error) {
+      debug(error)
+
+      if (transaction) {
+        await transaction.rollback()
+      }
+
+      next(error)
     }
   }
-
-  // If we make it this far, then something went wrong.
-  res.status(httpStatusCodes.internalServerError).send()
-})
+)
 
 // ===========================================================================
 // Facilitators
