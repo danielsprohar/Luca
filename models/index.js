@@ -137,6 +137,23 @@ CustomerVehicle.belongsTo(Customer, {
 
 // ===========================================================================
 
+Customer.hasMany(Payment, {
+  as: 'payments',
+  foreignKey: {
+    field: 'customer_id',
+    name: 'customerId'
+  }
+})
+
+Payment.belongsTo(Customer, {
+  foreignKey: {
+    field: 'customer_id',
+    name: 'customerId'
+  }
+})
+
+// ===========================================================================
+
 const models = {
   CustomerVehicle,
   Customer,

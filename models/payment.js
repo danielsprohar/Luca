@@ -1,4 +1,4 @@
-const { DataTypes, Model, Deferrable } = require('sequelize')
+const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
@@ -13,6 +13,7 @@ class Payment extends Model {
     const schema = Joi.object({
       amount: Joi.number().min(1).required(),
       paymentMethod: Joi.string().min(1).max(128).required(),
+      customerId: Joi.number().min(1).required(),
       details: Joi.string().max(2048)
     })
 
@@ -25,7 +26,7 @@ class Payment extends Model {
 Payment.init(
   {
     amount: {
-      type: DataTypes.DECIMAL(7,2),
+      type: DataTypes.DECIMAL(7, 2),
       allowNull: false
     },
     paymentMethod: {

@@ -4,6 +4,29 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
  */
 const httpStatusCodes = {
+
+  /**
+   * 200
+   * 
+   * Indicates that the request has succeeded.
+   */
+  ok: 200,
+
+  /**
+   * 201
+   * 
+   * Indicates that the request has succeeded and has led to the creation of a resource.
+   */
+  created: 201,
+
+  /**
+   * 204
+   * 
+   * Indicates that the request has succeeded, 
+   * but that the client doesn't need to go away from its current page.
+   */
+  noContent: 204,
+
   /**
    * 400
    * 
