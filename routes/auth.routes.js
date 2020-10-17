@@ -11,7 +11,7 @@ const { User, Role, UserRole } = require('../models')
 // Sign in a User
 // ===========================================================================
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   const { error } = User.validateLogin(req.body)
   if (error) {
     debug(error)
@@ -20,43 +20,47 @@ router.post('/login', async (req, res) => {
       .send(error.details[0].message)
   }
 
-  // The User table has a unique (btree) index on column "normalizedEmail"
-  const user = await User.findOne({
-    where: {
-      normalizedEmail: req.body.email.toUpperCase()
-    },
-    include: {
-      model: Role,
-      as: 'roles',
-      attributes: ['name'],
-      through: {
-        attributes: []
+  try {
+    // The User table has a unique (btree) index on column "normalizedEmail"
+    const user = await User.findOne({
+      where: {
+        normalizedEmail: req.body.email.toUpperCase()
+      },
+      include: {
+        model: Role,
+        as: 'roles',
+        attributes: ['name'],
+        through: {
+          attributes: []
+        }
       }
+    })
+
+    // Check for an invalid email
+    if (!user) {
+      return res
+        .status(httpStatusCodes.unauthorized)
+        .send('Invalid email or password')
     }
-  })
 
-  // Check for an invalid email
-  if (!user) {
-    return res
-      .status(httpStatusCodes.unauthorized)
-      .send('Invalid email or password')
+    // Check for an invalid password
+    const isAuthenticated = await bcrypt.compare(
+      req.body.password,
+      user.hashedPassword
+    )
+    if (!isAuthenticated) {
+      return res
+        .status(httpStatusCodes.unauthorized)
+        .send('Invalid email or password')
+    }
+
+    res.json({
+      user: mapToDto(user),
+      token: buildJwtToken(user)
+    })
+  } catch (error) {
+    next(error)
   }
-
-  // Check for an invalid password
-  const isAuthenticated = await bcrypt.compare(
-    req.body.password,
-    user.hashedPassword
-  )
-  if (!isAuthenticated) {
-    return res
-      .status(httpStatusCodes.unauthorized)
-      .send('Invalid email or password')
-  }
-
-  res.json({
-    user: mapToDto(user),
-    token: buildJwtToken(user)
-  })
 })
 
 // ===========================================================================
@@ -70,33 +74,33 @@ router.post('/register', async (req, res, next) => {
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
-  const userCount = await User.count({
-    where: {
-      normalizedEmail: req.body.email.toUpperCase()
-    }
-  })
-
-  if (userCount === undefined || userCount === null) {
-    return res
-      .status(httpStatusCodes.badRequest)
-      .send('The provided email already exists.')
-  }
-
-  const defaultRole = await Role.findOne({
-    where: {
-      name: 'user'
-    }
-  })
-
-  // https://www.npmjs.com/package/bcrypt#a-note-on-rounds
-  const saltRounds = 11
-
-  // https://www.npmjs.com/package/bcrypt#hash-info
-  const hash = await bcrypt.hash(req.body.password, saltRounds)
-
-  const transaction = await db.transaction()
-
   try {
+    const userCount = await User.count({
+      where: {
+        normalizedEmail: req.body.email.toUpperCase()
+      }
+    })
+
+    if (userCount === undefined || userCount === null) {
+      return res
+        .status(httpStatusCodes.badRequest)
+        .send('The provided email already exists.')
+    }
+
+    const defaultRole = await Role.findOne({
+      where: {
+        name: 'user'
+      }
+    })
+
+    // https://www.npmjs.com/package/bcrypt#a-note-on-rounds
+    const saltRounds = 11
+
+    // https://www.npmjs.com/package/bcrypt#hash-info
+    const hash = await bcrypt.hash(req.body.password, saltRounds)
+
+    const transaction = await db.transaction()
+
     const user = await User.create({
       username: req.body.username,
       email: req.body.email,
@@ -110,7 +114,7 @@ router.post('/register', async (req, res, next) => {
 
     await transaction.commit()
 
-    return res.json({
+    res.json({
       user: mapToDto(user),
       token: buildJwtToken(user)
     })
@@ -119,9 +123,8 @@ router.post('/register', async (req, res, next) => {
     if (transaction) {
       await transaction.rollback()
     }
+    next(error)
   }
-
-  res.status(httpStatusCodes.internalServerError).send()
 })
 
 // ===========================================================================
