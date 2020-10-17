@@ -6,6 +6,7 @@ dotenv.config()
 module.exports = new Sequelize(process.env.DB_URL, {
   host: 'localhost',
   dialect: 'postgres',
+  logging: false,
   pool: {
     max: 5,
     min: 0,

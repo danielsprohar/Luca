@@ -14,7 +14,7 @@ router.get('/', async (req, res, next) => {
   const pageIndex = req.params.pageIndex || 1
 
   try {
-    const { count, rows: customers } = await Customer.findAllAndCount({
+    const { count, rows: customers } = await Customer.findAndCountAll({
       order: ['id'],
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize
@@ -69,7 +69,7 @@ router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Customer.validateInsert(req.body)
   if (error) {
     debug(error)
-    return res.status(400).send(error.details[0].message)
+    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
   try {
