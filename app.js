@@ -1,14 +1,29 @@
 const express = require('express')
 const helmet = require('helmet')
-const logger = require('morgan')
+const morgan = require('morgan')
 const routers = require('./routes')
 // const cors = require('cors')
 const debug = require('debug')('luca:app')
+const winston = require('./config/winston')
 const middleware = require('./middleware')
+const app = express()
+
 const HOST = process.env.HOST || 'localhost'
 const PORT = process.env.PORT || 5000
 
-const app = express()
+// ===========================================================================
+// Logging
+// ===========================================================================
+
+// Catch rejected promises
+process.on('unhandledRejection', (err) => {
+  // Let winston take care of the rest
+  throw err
+})
+
+// ===========================================================================
+// Middleware
+// ===========================================================================
 
 // app.use(cors({
 
@@ -16,7 +31,7 @@ const app = express()
 
 app.use(express.json())
 app.use(helmet())
-app.use(logger('dev'))
+app.use(morgan('dev'))
 
 // ===========================================================================
 // Routes
@@ -34,4 +49,4 @@ app.use(middleware.errorHandler)
 
 // ===========================================================================
 
-app.listen(PORT, debug(`Listening  http://${HOST}::${PORT}`))
+app.listen(PORT, winston.info(`Listening  http://${HOST}::${PORT}`))
