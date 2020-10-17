@@ -3,6 +3,7 @@ const router = express.Router()
 const debug = require('debug')('luca:customers')
 const { httpStatusCodes } = require('../constants')
 const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
+const { admin } = require('../middleware')
 
 // ===========================================================================
 // Pagination
