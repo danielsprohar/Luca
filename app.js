@@ -3,13 +3,8 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 const routers = require('./routes')
 // const cors = require('cors')
-const debug = require('debug')('luca:app')
-const winston = require('./config/winston')
 const middleware = require('./middleware')
 const app = express()
-
-const HOST = process.env.HOST || 'localhost'
-const PORT = process.env.PORT || 5000
 
 // ===========================================================================
 // Logging
@@ -49,4 +44,4 @@ app.use(middleware.errorHandler)
 
 // ===========================================================================
 
-app.listen(PORT, winston.info(`Listening  http://${HOST}::${PORT}`))
+module.exports = app

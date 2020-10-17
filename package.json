@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon app.js"
+    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon server.js",
+    "test": "jest --detectOpenHandles"
   },
   "keywords": [
     "pms"
@@ -26,5 +27,8 @@
     "sequelize": "^6.3.5",
     "winston": "^3.3.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "jest": "^26.5.3",
+    "supertest": "^5.0.0"
+  }
 }
