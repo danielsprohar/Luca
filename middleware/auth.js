@@ -2,7 +2,7 @@ const { httpStatusCodes } = require('../constants')
 const jwt = require('jsonwebtoken')
 const debug = require('debug')('luca:middleware:auth')
 
-module.exports = function (req, res, next) {
+module.exports = function isAuthenticated(req, res, next) {
   if (!req.headers.authorization) {
     return res.status(httpStatusCodes.unauthorized).send('No token')
   }
@@ -10,7 +10,9 @@ module.exports = function (req, res, next) {
   const authHeader = req.headers.authorization.split(' ')
   const headerName = authHeader[0] // Should be "Bearer"
   if (headerName !== 'Bearer') {
-    return res.status(httpStatusCodes.badRequest).send('Invalid authorization header value')
+    return res
+      .status(httpStatusCodes.badRequest)
+      .send('Invalid authorization header value')
   }
 
   const token = authHeader[1] // Should be the JWT token

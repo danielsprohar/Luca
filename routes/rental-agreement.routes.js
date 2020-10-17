@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:rental-agreements')
 const { httpStatusCodes } = require('../constants')
-const { admin, paramValidation } = require('../middleware')
+const { isAdministrator, isValidParamType } = require('../middleware')
 const {
   Customer,
   Invoice,
@@ -41,7 +41,7 @@ router.get('/', async (req, res, next) => {
 // By ID
 // ===========================================================================
 
-router.get('/:id', paramValidation, async (req, res, next) => {
+router.get('/:id', isValidParamType, async (req, res, next) => {
   try {
     const space = await RentalAgreement.findOne({
       where: {
@@ -66,7 +66,7 @@ router.get('/:id', paramValidation, async (req, res, next) => {
 // Create
 // ===========================================================================
 
-router.post('/', admin, async (req, res, next) => {
+router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = RentalAgreement.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -122,31 +122,37 @@ router.post('/', admin, async (req, res, next) => {
 // Update
 // ===========================================================================
 
-router.put('/:id', [admin, paramValidation], async (req, res, next) => {
-  const { error } = RentalAgreement.validateUpdate(req.body)
-  if (error) {
-    debug(error)
-    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
-  }
-
-  try {
-    if (!(await rentalAgreementExists(req.params.id))) {
+router.put(
+  '/:id',
+  [isAdministrator, isValidParamType],
+  async (req, res, next) => {
+    const { error } = RentalAgreement.validateUpdate(req.body)
+    if (error) {
+      debug(error)
       return res
-        .status(httpStatusCodes.notFound)
-        .send('Rental Agreement does not exist.')
+        .status(httpStatusCodes.badRequest)
+        .send(error.details[0].message)
     }
 
-    await RentalAgreement.update(req.body, {
-      where: {
-        id: req.params.id
+    try {
+      if (!(await rentalAgreementExists(req.params.id))) {
+        return res
+          .status(httpStatusCodes.notFound)
+          .send('Rental Agreement does not exist.')
       }
-    })
 
-    res.status(httpStatusCodes.notFound).send()
-  } catch (error) {
-    next(error)
+      await RentalAgreement.update(req.body, {
+        where: {
+          id: req.params.id
+        }
+      })
+
+      res.status(httpStatusCodes.notFound).send()
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 // ===========================================================================
 // Deactivate
@@ -176,7 +182,7 @@ router.put('/:id/deactivate', async (req, res, next) => {
 // ===========================================================================
 // Get all the invoices that are associated with the given rental agreement
 // ===========================================================================
-router.get('/:id/invoices', paramValidation, async (req, res, next) => {
+router.get('/:id/invoices', isValidParamType, async (req, res, next) => {
   try {
     if (!(await rentalAgreementExists(req.params.id))) {
       return res

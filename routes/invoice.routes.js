@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const debug = require('debug')('luca:invoices')
 const { httpStatusCodes } = require('../constants')
-const { admin, paramValidation } = require('../middleware')
+const { isAdministrator, isValidParamType } = require('../middleware')
 
 const {
   Invoice,
@@ -42,7 +42,7 @@ router.get('/', async (req, res, next) => {
 // By ID
 // ===========================================================================
 
-router.get('/:id', paramValidation, async (req, res) => {
+router.get('/:id', isValidParamType, async (req, res) => {
   const invoice = await Invoice.findByPk(req.params.id, {
     include: [
       {
@@ -64,7 +64,7 @@ router.get('/:id', paramValidation, async (req, res) => {
 // Create an invoice
 // ===========================================================================
 
-router.post('/', admin, async (req, res, next) => {
+router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Invoice.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -85,7 +85,7 @@ router.post('/', admin, async (req, res, next) => {
 
 router.post(
   '/:id/make-a-payment',
-  [admin, paramValidation],
+  [isAdministrator, isValidParamType],
   async (req, res, next) => {
     try {
       // Some validation

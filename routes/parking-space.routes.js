@@ -3,7 +3,7 @@ const router = express.Router()
 const debug = require('debug')('luca:parking-spaces')
 const { Customer, ParkingSpace } = require('../models')
 const { httpStatusCodes } = require('../constants')
-const { admin, paramValidation } = require('../middleware')
+const { isAdministrator, isValidParamType } = require('../middleware')
 
 // ===========================================================================
 // Pagination
@@ -35,7 +35,7 @@ router.get('/', async (req, res, next) => {
 // By ID
 // ===========================================================================
 
-router.get('/:id', paramValidation, async (req, res, next) => {
+router.get('/:id', isValidParamType, async (req, res, next) => {
   try {
     const space = await ParkingSpace.findOne({
       where: {
@@ -59,7 +59,7 @@ router.get('/:id', paramValidation, async (req, res, next) => {
 // Create
 // ===========================================================================
 
-router.post('/', admin, async (req, res, next) => {
+router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = ParkingSpace.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -77,37 +77,43 @@ router.post('/', admin, async (req, res, next) => {
 // ===========================================================================
 // Update
 // ===========================================================================
-router.put('/:id', [admin, paramValidation], async (req, res, next) => {
-  const { error } = ParkingSpace.validateUpdate(req.body)
-  if (error) {
-    debug(error)
-    return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
-  }
-
-  try {
-    if (!(await parkingSpaceExists(req.params.id))) {
+router.put(
+  '/:id',
+  [isAdministrator, isValidParamType],
+  async (req, res, next) => {
+    const { error } = ParkingSpace.validateUpdate(req.body)
+    if (error) {
+      debug(error)
       return res
-        .status(httpStatusCodes.notFound)
-        .send('Parking Space does not exist.')
+        .status(httpStatusCodes.badRequest)
+        .send(error.details[0].message)
     }
 
-    await ParkingSpace.update(req.body, {
-      where: {
-        id: req.params.id
+    try {
+      if (!(await parkingSpaceExists(req.params.id))) {
+        return res
+          .status(httpStatusCodes.notFound)
+          .send('Parking Space does not exist.')
       }
-    })
 
-    res.status(httpStatusCodes.noContent).send()
-  } catch (error) {
-    next(error)
+      await ParkingSpace.update(req.body, {
+        where: {
+          id: req.params.id
+        }
+      })
+
+      res.status(httpStatusCodes.noContent).send()
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 // ===========================================================================
 // Get the Occupants
 // ===========================================================================
 
-router.get('/:id/occupants', paramValidation, async (req, res, next) => {
+router.get('/:id/occupants', isValidParamType, async (req, res, next) => {
   try {
     const space = await ParkingSpace.findByPk(req.params.id, {
       include: [

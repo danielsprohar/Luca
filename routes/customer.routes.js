@@ -3,7 +3,7 @@ const router = express.Router()
 const debug = require('debug')('luca:customers')
 const { httpStatusCodes } = require('../constants')
 const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
-const { admin, paramValidation } = require('../middleware')
+const { isAdministrator, isValidParamType } = require('../middleware')
 
 // ===========================================================================
 // Pagination
@@ -35,7 +35,7 @@ router.get('/', async (req, res, next) => {
 // By ID
 // ===========================================================================
 
-router.get('/:id', paramValidation, async (req, res, next) => {
+router.get('/:id', isValidParamType, async (req, res, next) => {
   try {
     const customer = await Customer.findOne({
       where: {
@@ -65,7 +65,7 @@ router.get('/:id', paramValidation, async (req, res, next) => {
 // Create
 // ===========================================================================
 
-router.post('/', admin, async (req, res, next) => {
+router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Customer.validateInsert(req.body)
   if (error) {
     debug(error)
@@ -84,33 +84,37 @@ router.post('/', admin, async (req, res, next) => {
 // Update
 // ===========================================================================
 
-router.put('/:id', [admin, paramValidation], async (req, res, next) => {
-  try {
-    const { error } = Customer.validateUpdate(req.body)
-    if (error) {
-      debug(error)
-      return res
-        .status(httpStatusCodes.badRequest)
-        .send(error.details[0].message)
-    }
-
-    if (!(await customerExists(req.params.id))) {
-      return res
-        .status(httpStatusCodes.notFound)
-        .send('Customer does not exist.')
-    }
-
-    await Customer.update(req.body, {
-      where: {
-        id: req.params.id
+router.put(
+  '/:id',
+  [isAdministrator, isValidParamType],
+  async (req, res, next) => {
+    try {
+      const { error } = Customer.validateUpdate(req.body)
+      if (error) {
+        debug(error)
+        return res
+          .status(httpStatusCodes.badRequest)
+          .send(error.details[0].message)
       }
-    })
 
-    res.status(httpStatusCodes.noContent).send()
-  } catch (error) {
-    next(error)
+      if (!(await customerExists(req.params.id))) {
+        return res
+          .status(httpStatusCodes.notFound)
+          .send('Customer does not exist.')
+      }
+
+      await Customer.update(req.body, {
+        where: {
+          id: req.params.id
+        }
+      })
+
+      res.status(httpStatusCodes.noContent).send()
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 // ===========================================================================
 // Get a customer's rental agreements
@@ -118,7 +122,7 @@ router.put('/:id', [admin, paramValidation], async (req, res, next) => {
 
 router.get(
   '/:id/rental-agreements',
-  paramValidation,
+  isValidParamType,
   async (req, res, next) => {
     try {
       const agreements = await RentalAgreement.findAll({
