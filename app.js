@@ -2,7 +2,7 @@ const express = require('express')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const routers = require('./routes')
-// const cors = require('cors')
+const cors = require('cors')
 const middleware = require('./middleware')
 const app = express()
 
@@ -20,9 +20,9 @@ process.on('unhandledRejection', (err) => {
 // Middleware
 // ===========================================================================
 
-// app.use(cors({
-
-// }))
+app.use(cors({
+  origin: 'http://localhost:4200'
+}))
 
 app.use(express.json())
 app.use(helmet())
