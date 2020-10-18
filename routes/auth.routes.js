@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const debug = require('debug')('luca:auth')
+const winston = require('../config/winston')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const db = require('../config/database')
@@ -14,7 +14,7 @@ const { User, Role, UserRole } = require('../models')
 router.post('/login', async (req, res, next) => {
   const { error } = User.validateLogin(req.body)
   if (error) {
-    debug(error)
+    winston.warn(error)
     return res
       .status(httpStatusCodes.unprocessableEntity)
       .send(error.details[0].message)
@@ -48,6 +48,7 @@ router.post('/login', async (req, res, next) => {
       req.body.password,
       user.hashedPassword
     )
+
     if (!isAuthenticated) {
       return res
         .status(httpStatusCodes.unauthorized)
@@ -70,7 +71,7 @@ router.post('/login', async (req, res, next) => {
 router.post('/register', async (req, res, next) => {
   const { error } = User.validateInsert(req.body)
   if (error) {
-    debug(error)
+    winston.warn(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
@@ -119,7 +120,6 @@ router.post('/register', async (req, res, next) => {
       token: buildJwtToken(user)
     })
   } catch (error) {
-    debug(error)
     if (transaction) {
       await transaction.rollback()
     }

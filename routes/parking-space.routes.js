@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const debug = require('debug')('luca:parking-spaces')
+const winston = require('../config/winston')
 const { Customer, ParkingSpace } = require('../models')
 const { httpStatusCodes } = require('../constants')
 const { isAdministrator, isValidParamType } = require('../middleware')
@@ -10,11 +10,11 @@ const { isAdministrator, isValidParamType } = require('../middleware')
 // ===========================================================================
 
 router.get('/', async (req, res, next) => {
-  const pageSize = req.params.pageSize || 30
+  const pageSize = req.params.pageSize || 50
   const pageIndex = req.params.pageIndex || 1
 
   try {
-    const { count, rows: spaces } = await ParkingSpace.findAllAndCount({
+    const { count, rows: spaces } = await ParkingSpace.findAndCountAll({
       order: ['id'],
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize
@@ -62,7 +62,7 @@ router.get('/:id', isValidParamType, async (req, res, next) => {
 router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = ParkingSpace.validateInsert(req.body)
   if (error) {
-    debug(error)
+    winston.warn(error)
     return res.status(httpStatusCodes.notFound).send(error.details[0].message)
   }
 
@@ -77,13 +77,13 @@ router.post('/', isAdministrator, async (req, res, next) => {
 // ===========================================================================
 // Update
 // ===========================================================================
+// [isAdministrator, isValidParamType],
 router.put(
   '/:id',
-  [isAdministrator, isValidParamType],
   async (req, res, next) => {
     const { error } = ParkingSpace.validateUpdate(req.body)
     if (error) {
-      debug(error)
+      winston.warn(error)
       return res
         .status(httpStatusCodes.badRequest)
         .send(error.details[0].message)

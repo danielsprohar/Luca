@@ -9,7 +9,7 @@ class ParkingSpace extends Model {
    * Ensure that `req.body` has the required fields to create a new tuple.
    * @param {*} space
    */
-  validateInsert(space) {
+  static validateInsert(space) {
     const schema = Joi.object({
       name: Joi.string().min(1).max(32).required(),
       description: Joi.string().min(1).max(128).required(),
@@ -25,7 +25,7 @@ class ParkingSpace extends Model {
    * Ensure that the `req.body` has the required fields to update an existing tuple.
    * @param {*} space
    */
-  validateUpdate(space) {
+  static validateUpdate(space) {
     const schema = Joi.object({
       name: Joi.string().min(1).max(32),
       description: Joi.string().min(1).max(128),

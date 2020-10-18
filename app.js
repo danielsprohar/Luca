@@ -20,9 +20,12 @@ process.on('unhandledRejection', (err) => {
 // Middleware
 // ===========================================================================
 
-app.use(cors({
-  origin: 'http://localhost:4200'
-}))
+app.use(
+  cors({
+    origin: 'http://localhost:4200',
+    allowedHeaders: 'GET,HEAD,PUT,POST,Content-Type,Authorization',
+  })
+)
 
 app.use(express.json())
 app.use(helmet())

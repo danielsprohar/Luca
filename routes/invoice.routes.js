@@ -21,7 +21,7 @@ router.get('/', async (req, res, next) => {
   const pageIndex = req.params.pageIndex || 1
 
   try {
-    const { count, rows: invoices } = await Invoice.findAllAndCount({
+    const { count, rows: invoices } = await Invoice.findAndCountAll({
       order: ['id'],
       limit: pageSize,
       offset: (pageIndex - 1) * pageSize
