@@ -158,6 +158,7 @@ function buildJwtToken(user) {
   // Check if this user is an administrator
   const isAdmin = user.roles.findIndex((role) => role.name === 'admin') !== -1
 
+  // TODO: Reduce the time to expiration before deploying to production.
   // Create JWT token
   return jwt.sign(
     {
@@ -166,7 +167,7 @@ function buildJwtToken(user) {
     },
     process.env.JWT_KEY,
     {
-      expiresIn: '8h',
+      expiresIn: '4h',
       issuer: 'http://localhost:5000'
     }
   )
