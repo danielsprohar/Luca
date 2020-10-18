@@ -77,9 +77,10 @@ router.post('/', isAdministrator, async (req, res, next) => {
 // ===========================================================================
 // Update
 // ===========================================================================
-// [isAdministrator, isValidParamType],
+
 router.put(
   '/:id',
+  [isAdministrator, isValidParamType],
   async (req, res, next) => {
     const { error } = ParkingSpace.validateUpdate(req.body)
     if (error) {

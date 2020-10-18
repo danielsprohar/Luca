@@ -166,7 +166,7 @@ function buildJwtToken(user) {
     },
     process.env.JWT_KEY,
     {
-      expiresIn: '8h',
+      expiresIn: '1h',
       issuer: 'http://localhost:5000'
     }
   )
