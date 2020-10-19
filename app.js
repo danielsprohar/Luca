@@ -3,7 +3,6 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 const routers = require('./routes')
 const cors = require('cors')
-const cookieParser = require('cookie-parser')
 const middleware = require('./middleware')
 const app = express()
 
