@@ -43,8 +43,7 @@ Payment.init(
     sequelize,
     modelName: 'Payment',
     tableName: 'payments',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

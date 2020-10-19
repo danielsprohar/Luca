@@ -68,9 +68,7 @@ ParkingSpace.init(
     sequelize,
     modelName: 'ParkingSpace',
     tableName: 'parking_spaces',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

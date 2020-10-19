@@ -10,9 +10,7 @@ InvoicePayment.init(
   {
     sequelize,
     tableName: 'invoice_payments',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

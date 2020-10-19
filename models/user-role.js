@@ -10,9 +10,7 @@ UserRole.init(
   {
     sequelize,
     tableName: 'user_roles',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

@@ -92,9 +92,7 @@ RentalAgreement.init(
     sequelize,
     modelName: 'RentalAgreement',
     tableName: 'rental_agreements',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 
