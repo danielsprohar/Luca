@@ -17,14 +17,14 @@ const {
 // ===========================================================================
 
 router.get('/', async (req, res, next) => {
-  const pageSize = req.params.pageSize || 30
-  const pageIndex = req.params.pageIndex || 1
+  const pageIndex = req.query.pageIndex || 1
+  const pageSize = req.query.pageSize || 30
 
   try {
     const { count, rows: invoices } = await Invoice.findAndCountAll({
       order: ['id'],
       limit: pageSize,
-      offset: (pageIndex - 1) * pageSize
+      offset: pageIndex * pageSize
     })
 
     res.json({
