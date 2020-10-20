@@ -162,6 +162,7 @@ function buildJwtToken(user) {
   return jwt.sign(
     {
       id: user.id,
+      username: user.username,
       isAdmin: isAdmin
     },
     process.env.JWT_KEY,
