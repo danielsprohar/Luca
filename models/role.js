@@ -42,7 +42,8 @@ Role.init(
   {
     sequelize,
     modelName: 'Role',
-    tableName: 'roles'
+    tableName: 'roles',
+    underscored: true
   }
 )
 

@@ -3,9 +3,9 @@ const router = express.Router()
 const winston = require('../config/winston')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const db = require('../config/database')
+const sequelize = require('../config/database')
 const { httpStatusCodes } = require('../constants')
-const { User, Role, UserRole } = require('../models')
+const { User, Role } = require('../models')
 
 // ===========================================================================
 // Sign in a User
@@ -75,54 +75,56 @@ router.post('/register', async (req, res, next) => {
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
-  try {
-    const userCount = await User.count({
-      where: {
-        normalizedEmail: req.body.email.toUpperCase()
-      }
-    })
-
-    if (userCount === undefined || userCount === null) {
-      return res
-        .status(httpStatusCodes.badRequest)
-        .send('The provided email already exists.')
+  const userCount = await User.count({
+    where: {
+      normalizedEmail: req.body.email.toUpperCase()
     }
+  })
 
-    const defaultRole = await Role.findOne({
-      where: {
-        name: 'user'
-      }
-    })
+  if (userCount > 0) {
+    return res
+      .status(httpStatusCodes.unprocessableEntity)
+      .send('The provided email already exists.')
+  }
 
-    // https://www.npmjs.com/package/bcrypt#a-note-on-rounds
-    const saltRounds = 11
+  const defaultRole = await Role.findOne({
+    where: {
+      name: 'admin'
+    }
+  })
 
-    // https://www.npmjs.com/package/bcrypt#hash-info
-    const hash = await bcrypt.hash(req.body.password, saltRounds)
+  // https://www.npmjs.com/package/bcrypt#a-note-on-rounds
+  const saltRounds = 11
 
-    const transaction = await db.transaction()
+  // https://www.npmjs.com/package/bcrypt#hash-info
+  const hash = await bcrypt.hash(req.body.password, saltRounds)
 
+  const transaction = await sequelize.transaction()
+
+  try {
     const user = await User.create({
       username: req.body.username,
       email: req.body.email,
       hashedPassword: hash
     })
 
-    await UserRole.create({
-      userId: user.id,
-      roleId: defaultRole.id
-    })
+    await defaultRole.addUser(user)
 
     await transaction.commit()
 
-    res.json({
+    const response = {
       user: mapToDto(user),
       token: buildJwtToken(user)
-    })
+    }
+
+    res.json(response)
   } catch (error) {
+    winston.error(error)
+
     if (transaction) {
       await transaction.rollback()
     }
+
     next(error)
   }
 })
@@ -155,15 +157,15 @@ function mapToDto(user) {
  * @returns {string} A new JWT token
  */
 function buildJwtToken(user) {
-  // Check if this user is an administrator
-  const isAdmin = user.roles.findIndex((role) => role.name === 'admin') !== -1
+  // TODO: Check if this user is an administrator
+  // const isAdmin = user.roles?.findIndex((role) => role.name === 'admin') !== -1
 
   // Create JWT token
   return jwt.sign(
     {
       id: user.id,
       username: user.username,
-      isAdmin: isAdmin
+      isAdmin: true
     },
     process.env.JWT_KEY,
     {

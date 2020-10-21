@@ -1,4 +1,4 @@
-const { DataTypes, Model, Deferrable } = require('sequelize')
+const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
