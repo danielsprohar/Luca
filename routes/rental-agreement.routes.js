@@ -1,7 +1,7 @@
 const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
-const debug = require('debug')('luca:rental-agreements')
+const winston = require('../config/winston')
 const { httpStatusCodes } = require('../constants')
 const { isAdministrator, isValidParamType } = require('../middleware')
 const {
@@ -69,7 +69,7 @@ router.get('/:id', isValidParamType, async (req, res, next) => {
 router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = RentalAgreement.validateInsert(req.body)
   if (error) {
-    debug(error)
+    winston.log(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
@@ -77,13 +77,15 @@ router.post('/', isAdministrator, async (req, res, next) => {
   const parkingSpaceId = req.body.parkingSpaceId
   const customerId = req.body.customerId
   try {
-    if (!(await parkingSpaceExists(parkingSpaceId))) {
+    const parkingSpace = await ParkingSpace.findByPk(parkingSpaceId)
+    if (!parkingSpace) {
       return res
         .status(httpStatusCodes.notFound)
         .send('Parking Space does not exist.')
     }
 
-    if (!(await customerExists(customerId))) {
+    const customer = await Customer.findByPk(customerId)
+    if (!customer) {
       return res
         .status(httpStatusCodes.notFound)
         .send('Customer does not exist.')
@@ -95,20 +97,17 @@ router.post('/', isAdministrator, async (req, res, next) => {
     // Now, do work.
     const agreement = await RentalAgreement.create(req.body)
 
-    await ParkingSpace.update(
-      { isOccupied: true },
-      {
-        where: {
-          id: parkingSpaceId
-        }
-      }
-    )
+    parkingSpace.isOccupied = true
+    customer.isActive = true
+
+    await parkingSpace.save()
+    await customer.save()
 
     await transaction.commit()
 
     res.status(httpStatusCodes.created).send(agreement)
   } catch (error) {
-    debug(error)
+    winston.log(error)
 
     if (transaction) {
       await transaction.rollback()
@@ -128,24 +127,22 @@ router.put(
   async (req, res, next) => {
     const { error } = RentalAgreement.validateUpdate(req.body)
     if (error) {
-      debug(error)
+      winston.log(error)
       return res
         .status(httpStatusCodes.badRequest)
         .send(error.details[0].message)
     }
 
     try {
-      if (!(await rentalAgreementExists(req.params.id))) {
+      const rentalAgreement = await RentalAgreement.findByPk(req.params.id)
+      if (!rentalAgreement) {
         return res
           .status(httpStatusCodes.notFound)
           .send('Rental Agreement does not exist.')
       }
 
-      await RentalAgreement.update(req.body, {
-        where: {
-          id: req.params.id
-        }
-      })
+      Object.assign(rentalAgreement, req.body)
+      await rentalAgreement.save()
 
       res.status(httpStatusCodes.notFound).send()
     } catch (error) {
@@ -158,26 +155,28 @@ router.put(
 // Deactivate
 // ===========================================================================
 
-router.put('/:id/deactivate', async (req, res, next) => {
-  if (!(await rentalAgreementExists(req.params.id))) {
-    return res
-      .status(httpStatusCodes.notFound)
-      .send('Rental Agreement does not exist.')
-  }
+router.put(
+  '/:id/deactivate',
+  [isAdministrator, isValidParamType],
+  async (req, res, next) => {
+    const rentalAgreement = await RentalAgreement.findByPk(req.params.id)
 
-  await RentalAgreement.update(
-    {
-      isActive: false
-    },
-    {
-      where: {
-        id: req.params.id
-      }
+    if (!rentalAgreement) {
+      return res
+        .status(httpStatusCodes.notFound)
+        .send('Rental Agreement does not exist.')
     }
-  )
 
-  res.status(httpStatusCodes.noContent).send()
-})
+    try {
+      rentalAgreement.isActive = false
+      await rentalAgreement.save()
+      res.status(httpStatusCodes.noContent).send()
+    } catch (err) {
+      winston.log(err)
+      next(err)
+    }
+  }
+)
 
 // ===========================================================================
 // Get all the invoices that are associated with the given rental agreement
@@ -190,8 +189,8 @@ router.get('/:id/invoices', isValidParamType, async (req, res, next) => {
         .send('Rental Agreement does not exist')
     }
 
-    const pageSize = req.params.pageSize || 30
-    const pageIndex = req.params.pageIndex || 1
+    const pageIndex = req.query.pageIndex || 1
+    const pageSize = req.query.pageSize || 30
     const predicate = { rentalAgreementId: req.params.id }
 
     if (req.query.isPaid !== undefined) {
@@ -224,26 +223,8 @@ router.get('/:id/invoices', isValidParamType, async (req, res, next) => {
 // Facilitators
 // ===========================================================================
 
-async function parkingSpaceExists(id) {
-  return await ParkingSpace.findByPk(id, {
-    attributes: ['id']
-  })
-}
-
-// ===========================================================================
-
-async function customerExists(id) {
-  return await Customer.findByPk(id, {
-    attributes: ['id']
-  })
-}
-
-// ===========================================================================
-
 async function rentalAgreementExists(id) {
-  return await RentalAgreement.findByPk(id, {
-    attributes: ['id']
-  })
+  return (await RentalAgreement.count({ where: { id } })) > 0
 }
 
 // ===========================================================================

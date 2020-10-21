@@ -1,7 +1,7 @@
 const sequelize = require('../config/database')
 const express = require('express')
 const router = express.Router()
-const debug = require('debug')('luca:invoices')
+const winston = require('../config/winston')
 const { httpStatusCodes } = require('../constants')
 const { isAdministrator, isValidParamType } = require('../middleware')
 
@@ -67,7 +67,7 @@ router.get('/:id', isValidParamType, async (req, res) => {
 router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Invoice.validateInsert(req.body)
   if (error) {
-    debug(error)
+    winston.log(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
@@ -84,20 +84,13 @@ router.post('/', isAdministrator, async (req, res, next) => {
 // ===========================================================================
 
 router.post(
-  '/:id/make-a-payment',
+  '/:id/payments',
   [isAdministrator, isValidParamType],
   async (req, res, next) => {
     try {
-      // Some validation
-      if (!(await invoiceExists(req.params.id))) {
-        return res
-          .status(httpStatusCodes.notFound)
-          .send('Invoice does not exist.')
-      }
-
       const { error } = Payment.validateInsert(req.body)
       if (error) {
-        debug(error)
+        winston.log(error)
         return res
           .status(httpStatusCodes.badRequest)
           .send(error.details[0].message)
@@ -123,19 +116,28 @@ router.post(
         ]
       })
 
+      if (!invoice) {
+        return res
+          .status(httpStatusCodes.notFound)
+          .send('Invoice does not exist.')
+      }
+
       // =========================================================================
       // Start the transaction
       // =========================================================================
       const transaction = await sequelize.transaction()
 
       // Make the payment
-      const payment = await Payment.create(req.body)
+      // const payment = await Payment.create(req.body)
 
       // Make the association between the payment and invoice
-      await InvoicePayment.create({
-        invoice_id: invoice.id,
-        payment_id: payment.id
-      })
+      // await InvoicePayment.create({
+      //   invoice_id: invoice.id,
+      //   payment_id: payment.id
+      // })
+
+      // TODO: test this
+      await invoice.addPayment(req.body, { through: InvoicePayment })
 
       // update the invoice status
       const amountDue = getAmountDue(invoice)
@@ -153,7 +155,7 @@ router.post(
 
       res.status(httpStatusCodes.created).send(payment)
     } catch (error) {
-      debug(error)
+      winston.log(error)
 
       if (transaction) {
         await transaction.rollback()
