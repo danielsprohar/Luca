@@ -67,7 +67,7 @@ router.get('/:id', isValidParamType, async (req, res) => {
 router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Invoice.validateInsert(req.body)
   if (error) {
-    winston.log(error)
+    winston.warn(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
@@ -87,60 +87,59 @@ router.post(
   '/:id/payments',
   [isAdministrator, isValidParamType],
   async (req, res, next) => {
-    try {
-      const { error } = Payment.validateInsert(req.body)
-      if (error) {
-        winston.log(error)
-        return res
-          .status(httpStatusCodes.badRequest)
-          .send(error.details[0].message)
-      }
+    const { error } = Payment.validateInsert(req.body)
+    if (error) {
+      winston.warn(error)
+      return res
+        .status(httpStatusCodes.badRequest)
+        .send(error.details[0].message)
+    }
 
-      // Fetch the resource
-      const invoice = await Invoice.findByPk(req.params.id, {
-        include: [
-          {
-            model: RentalAgreement,
-            attributes: [['recurring_rate', 'recurringRate']],
-            as: 'rentalAgreement'
-          },
-          {
-            model: Payment,
-            as: 'payments',
-            attributes: ['amount'],
-            // This prevents Sequelize from fetching the Junction table.
-            through: {
-              attributes: []
-            }
+    const invoiceId = req.params.id
+    const invoice = await Invoice.findByPk(invoiceId, {
+      include: [
+        {
+          model: RentalAgreement,
+          as: 'rentalAgreement',
+          attributes: [['recurring_rate', 'recurringRate']]
+        }
+      ]
+    })
+
+    if (!invoice) {
+      return res
+        .status(httpStatusCodes.notFound)
+        .send('Invoice does not exist.')
+    }
+
+    const payments = await Payment.findAll({
+      include: [
+        {
+          model: Invoice,
+          as: 'invoices',
+          attributes: [],
+          through: {
+            where: {
+              invoice_id: invoiceId
+            },
+            attributes: []
           }
-        ]
-      })
+        }
+      ]
+    })
 
-      if (!invoice) {
-        return res
-          .status(httpStatusCodes.notFound)
-          .send('Invoice does not exist.')
-      }
+    // =========================================================================
+    // Start the transaction
+    // =========================================================================
+    const transaction = await sequelize.transaction()
 
-      // =========================================================================
-      // Start the transaction
-      // =========================================================================
-      const transaction = await sequelize.transaction()
-
+    try {
       // Make the payment
-      // const payment = await Payment.create(req.body)
-
-      // Make the association between the payment and invoice
-      // await InvoicePayment.create({
-      //   invoice_id: invoice.id,
-      //   payment_id: payment.id
-      // })
-
-      // TODO: test this
-      await invoice.addPayment(req.body, { through: InvoicePayment })
+      const payment = await Payment.create(req.body)
+      await invoice.addPayment(payment)
 
       // update the invoice status
-      const amountDue = getAmountDue(invoice)
+      const amountDue = getAmountDue(payments, invoice)
 
       if (payment.amount >= amountDue) {
         invoice.invoiceStatus = 'paid'
@@ -150,12 +149,11 @@ router.post(
 
       await invoice.save()
 
-      // Save changes
       await transaction.commit()
 
       res.status(httpStatusCodes.created).send(payment)
     } catch (error) {
-      winston.log(error)
+      winston.error(error)
 
       if (transaction) {
         await transaction.rollback()
@@ -170,26 +168,19 @@ router.post(
 // Facilitators
 // ===========================================================================
 
-async function invoiceExists(id) {
-  return await Invoice.findByPk(id, {
-    attributes: ['id']
-  })
-}
-
-// ===========================================================================
-
 /**
  * Calculates the amount that is due on the invoice.
+ * @param {Payment[]} payments
  * @param {Invoice} invoice
+ *
+ * @returns {number} the total amount left to pay on the given Invoice.
  */
-function getAmountDue(invoice) {
-  if (invoice.payments.length === 0) {
+function getAmountDue(payments, invoice) {
+  if (payments.length === 0) {
     return invoice.rentalAgreement.recurringRate
   }
 
-  const paymentAmounts = invoice.payments.map((p) =>
-    Number.parseFloat(p.amount)
-  )
+  const paymentAmounts = payments.map((p) => Number.parseFloat(p.amount))
   const totalPaid = paymentAmounts.reduce(
     (previousValue, currentValue) => previousValue + currentValue
   )

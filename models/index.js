@@ -1,7 +1,6 @@
 const CustomerVehicle = require('./customer-vehicle')
 const Customer = require('./customer')
 const Invoice = require('./invoice')
-const InvoicePayment = require('./invoice-payment')
 const ParkingSpace = require('./parking-space')
 const Payment = require('./payment')
 const RentalAgreement = require('./rental-agreement')
@@ -39,13 +38,19 @@ Role.belongsToMany(User, {
 Customer.belongsToMany(ParkingSpace, {
   through: 'occupants',
   as: 'parking_spaces',
-  foreignKey: 'customer_id'
+  foreignKey: {
+    field: 'customer_id',
+    name: 'customerId'
+  }
 })
 
 ParkingSpace.belongsToMany(Customer, {
   through: 'occupants',
   as: 'customers',
-  foreignKey: 'parking_space_id'
+  foreignKey: {
+    field: 'parking_space_id',
+    name: 'parkingSpaceId'
+  }
 })
 
 // ===========================================================================
@@ -53,15 +58,21 @@ ParkingSpace.belongsToMany(Customer, {
 // ===========================================================================
 
 Invoice.belongsToMany(Payment, {
-  through: InvoicePayment,
+  through: 'invoice_payments',
   as: 'payments',
-  foreignKey: 'invoice_id'
+  foreignKey: {
+    field: 'invoice_id',
+    name: 'invoiceId'
+  }
 })
 
 Payment.belongsToMany(Invoice, {
-  through: InvoicePayment,
+  through: 'invoice_payments',
   as: 'invoices',
-  foreignKey: 'payment_id'
+  foreignKey: {
+    field: 'payment_id',
+    name: 'paymentId'
+  }
 })
 
 // ===========================================================================
@@ -157,7 +168,6 @@ const models = {
   CustomerVehicle,
   Customer,
   Invoice,
-  InvoicePayment,
   ParkingSpace,
   Payment,
   RentalAgreement,

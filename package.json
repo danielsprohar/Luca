@@ -2,10 +2,9 @@
   "name": "luca",
   "version": "1.0.0",
   "description": "A small management system for an RV park.",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node app.js",
-    "debug": "@powershell -Command $env:DEBUG='luca:*';nodemon server.js",
+    "start": "node server.js",
     "test": "jest --detectOpenHandles --watch"
   },
   "keywords": [
