@@ -1,6 +1,6 @@
 const { httpStatusCodes } = require('../constants')
 const jwt = require('jsonwebtoken')
-const debug = require('debug')('luca:middleware:auth')
+const logger = require('../config/winston')
 
 module.exports = function isAuthenticated(req, res, next) {
   if (!req.headers.authorization) {
@@ -21,7 +21,7 @@ module.exports = function isAuthenticated(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_KEY)
     req.user = decoded
   } catch (error) {
-    debug(error)
+    logger.error(error)
     return res.status(httpStatusCodes.unauthorized).send('Invalid token')
   }
 

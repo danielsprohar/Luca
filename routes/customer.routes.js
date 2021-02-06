@@ -1,6 +1,5 @@
 const express = require('express')
 const router = express.Router()
-const debug = require('debug')('luca:customers')
 const { httpStatusCodes } = require('../constants')
 const { Customer, CustomerVehicle, RentalAgreement } = require('../models')
 const { isAdministrator, isValidParamType } = require('../middleware')
@@ -68,7 +67,6 @@ router.get('/:id', isValidParamType, async (req, res, next) => {
 router.post('/', isAdministrator, async (req, res, next) => {
   const { error } = Customer.validateInsert(req.body)
   if (error) {
-    debug(error)
     return res.status(httpStatusCodes.badRequest).send(error.details[0].message)
   }
 
@@ -91,7 +89,6 @@ router.put(
     try {
       const { error } = Customer.validateUpdate(req.body)
       if (error) {
-        debug(error)
         return res
           .status(httpStatusCodes.badRequest)
           .send(error.details[0].message)
