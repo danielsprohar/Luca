@@ -25,7 +25,6 @@ class User extends Model {
    */
   static validateInsert(user) {
     const schema = Joi.object({
-      username: Joi.string().min(1).max(255).required(),
       email: Joi.string().min(1).max(255).required(),
       password: Joi.string().min(1).max(255).required()
     })
@@ -39,7 +38,6 @@ class User extends Model {
    */
   static validateUpdate(user) {
     const schema = Joi.object({
-      username: Joi.string().min(1).max(255),
       email: Joi.string().min(1).max(255)
     })
 
@@ -51,13 +49,6 @@ class User extends Model {
 
 User.init(
   {
-    username: {
-      type: DataTypes.STRING(255),
-      allowNull: false
-    },
-    normalizedUsername: {
-      type: DataTypes.STRING(255)
-    },
     email: {
       type: DataTypes.STRING(255),
       allowNull: false,
