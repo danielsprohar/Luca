@@ -103,13 +103,11 @@ router.post('/register', async (req, res, next) => {
 
   try {
     const user = await User.create({
-      username: req.body.username,
       email: req.body.email,
       hashedPassword: hash
     })
 
     await defaultRole.addUser(user)
-
     await transaction.commit()
 
     const response = {
@@ -143,7 +141,6 @@ router.post('/register', async (req, res, next) => {
 function mapToDto(user) {
   return {
     id: user.id,
-    username: user.username,
     email: user.email,
     roles: user.roles
   }
@@ -164,7 +161,6 @@ function buildJwtToken(user) {
   return jwt.sign(
     {
       id: user.id,
-      username: user.username,
       isAdmin: true
     },
     process.env.JWT_KEY,
