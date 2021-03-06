@@ -139,7 +139,7 @@ router.post(
       await invoice.addPayment(payment)
 
       // update the invoice status
-      const amountDue = getAmountDue(payments, invoice)
+      const amountDue = calcInvoiceBalance(invoice, payments)
 
       if (payment.amount >= amountDue) {
         invoice.invoiceStatus = 'paid'
@@ -148,10 +148,9 @@ router.post(
       }
 
       await invoice.save()
-
       await transaction.commit()
 
-      res.status(httpStatusCodes.created).send(payment)
+      return res.status(httpStatusCodes.created).send(payment)
     } catch (error) {
       winston.error(error)
 
@@ -169,13 +168,13 @@ router.post(
 // ===========================================================================
 
 /**
- * Calculates the amount that is due on the invoice.
- * @param {Payment[]} payments
+ * Calculates the remaining balance on the Invoice provided.
  * @param {Invoice} invoice
+ * @param {Payment[]} payments
  *
  * @returns {number} the total amount left to pay on the given Invoice.
  */
-function getAmountDue(payments, invoice) {
+function calcInvoiceBalance(invoice, payments) {
   if (payments.length === 0) {
     return invoice.rentalAgreement.recurringRate
   }
