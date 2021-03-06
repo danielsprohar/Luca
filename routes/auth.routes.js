@@ -155,6 +155,7 @@ function mapToDto(user) {
  */
 function buildJwtToken(user) {
   // TODO: Check if this user is an administrator
+  // Need null & undefined checks
   // const isAdmin = user.roles?.findIndex((role) => role.name === 'admin') !== -1
 
   // Create JWT token
