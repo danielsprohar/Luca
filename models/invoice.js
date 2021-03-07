@@ -1,4 +1,4 @@
-const { DataTypes, Model, Deferrable } = require('sequelize')
+const { DataTypes, Model } = require('sequelize')
 const sequelize = require('../config/database')
 const Joi = require('joi')
 
@@ -64,9 +64,7 @@ Invoice.init(
     sequelize,
     modelName: 'Invoice',
     tableName: 'invoices',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

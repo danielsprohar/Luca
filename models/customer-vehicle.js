@@ -90,9 +90,7 @@ CustomerVehicle.init(
     sequelize,
     modelName: 'CustomerVehicle',
     tableName: 'customer_vehicles',
-    underscored: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 

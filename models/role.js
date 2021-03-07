@@ -43,8 +43,7 @@ Role.init(
     sequelize,
     modelName: 'Role',
     tableName: 'roles',
-    createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    underscored: true
   }
 )
 
