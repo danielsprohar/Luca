@@ -7,7 +7,6 @@ const { isAdministrator, isValidParamType } = require('../middleware')
 
 const {
   Invoice,
-  InvoicePayment,
   Payment,
   RentalAgreement
 } = require('../models')
